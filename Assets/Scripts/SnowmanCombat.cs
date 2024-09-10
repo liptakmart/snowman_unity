@@ -92,9 +92,12 @@ public class SnowmanCombat : MonoBehaviour
     public void Die()
     {
         isAlive = false;
+        snowmanId = -1;
         Destroy(gameObject, 10);
+        //TODO
+        //gameManagerRef.GetComponent<GameManager>().SpawnSnowman(isNpc);
+
         Debug.Log("I died: " + snowmanId);
-        //TODO respawn
     }
 }
 

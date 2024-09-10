@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Projectile : MonoBehaviour
@@ -50,12 +51,41 @@ public class Projectile : MonoBehaviour
         
             if (collision.collider.gameObject.name == "Cylinder")
             {
-                //TODO disperse cylinder
+                var cylinderGo = collision.collider.gameObject;
+                cylinderGo.transform.parent = null;
+                cylinderGo.AddComponent<Rigidbody>();
+                Destroy(cylinderGo, 10f);
             }
             else
             {
-                hitSnowman.Die();
                 //disperse enemy corpse
+                var modelParent = hitSnowman.transform.Find("SnowmanModel");
+
+                var cylinderGo = modelParent.transform.Find("Cylinder").gameObject;
+                var legsGo = modelParent.transform.Find("Legs").gameObject;
+                var bodyGo = modelParent.transform.Find("Body").gameObject;
+                var headGo = modelParent.transform.Find("Head").gameObject;
+                var gunsGo = modelParent.transform.Find("Guns").gameObject;
+
+                cylinderGo.transform.parent = null;
+                legsGo.transform.parent = null;
+                bodyGo.transform.parent = null;
+                headGo.transform.parent = null;
+                gunsGo.transform.parent = null;
+
+                cylinderGo.AddComponent<Rigidbody>();
+                legsGo.AddComponent<Rigidbody>();
+                bodyGo.AddComponent<Rigidbody>();
+                headGo.AddComponent<Rigidbody>();
+                gunsGo.AddComponent<Rigidbody>();
+
+                Destroy(cylinderGo, 10f);
+                Destroy(legsGo, 10f);
+                Destroy(bodyGo, 10f);
+                Destroy(headGo, 10f);
+                Destroy(gunsGo, 0f);
+
+                hitSnowman.Die();
             }
         IsLethal = false;
     }

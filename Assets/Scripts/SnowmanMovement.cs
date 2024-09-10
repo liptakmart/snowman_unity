@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class SnowmanMovement : MonoBehaviour
 {
-    public float maxSpeed = 5f; // Maximum speed the character can reach
+    public float movementSpeed = 2f; // Maximum speed the character can reach
     public GameObject snowmanModel;
     private Vector3 movement; // Movement direction
 
@@ -34,7 +34,7 @@ public class SnowmanMovement : MonoBehaviour
             if (movement.magnitude > 0)
             {
                 // Move the character in the direction of the movement vector
-                transform.Translate(movement * maxSpeed * Time.deltaTime, Space.World);
+                transform.Translate(movement * movementSpeed * Time.deltaTime, Space.World);
 
                 TurnModel(new Vector2(moveHorizontal, moveVertical));
             }
