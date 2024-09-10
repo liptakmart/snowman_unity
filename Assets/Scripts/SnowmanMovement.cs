@@ -11,7 +11,7 @@ public class SnowmanMovement : MonoBehaviour
 
     private void Start()
     {
-        
+
     }
     void Update()
     {
@@ -21,20 +21,23 @@ public class SnowmanMovement : MonoBehaviour
 
     void MoveCharacter()
     {
-        // Get input for horizontal (A/D or Left/Right) and vertical (W/S or Up/Down) axes
-        float moveHorizontal = Input.GetAxis("Horizontal");
-        float moveVertical = Input.GetAxis("Vertical");
-
-        // Calculate the movement vector based on input
-        movement = new Vector3(moveHorizontal, 0f, moveVertical).normalized;
-
-        // If there is input, gradually increase speed
-        if (movement.magnitude > 0)
+        if (gameObject.GetComponent<SnowmanCombat>().isAlive && !gameObject.GetComponent<SnowmanCombat>().isNpc)
         {
-            // Move the character in the direction of the movement vector
-            transform.Translate(movement * maxSpeed * Time.deltaTime, Space.World);
+            // Get input for horizontal (A/D or Left/Right) and vertical (W/S or Up/Down) axes
+            float moveHorizontal = Input.GetAxis("Horizontal");
+            float moveVertical = Input.GetAxis("Vertical");
 
-            TurnModel(new Vector2(moveHorizontal, moveVertical));
+            // Calculate the movement vector based on input
+            movement = new Vector3(moveHorizontal, 0f, moveVertical).normalized;
+
+            // If there is input, gradually increase speed
+            if (movement.magnitude > 0)
+            {
+                // Move the character in the direction of the movement vector
+                transform.Translate(movement * maxSpeed * Time.deltaTime, Space.World);
+
+                TurnModel(new Vector2(moveHorizontal, moveVertical));
+            }
         }
     }
 

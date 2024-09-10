@@ -4,6 +4,10 @@ using UnityEngine;
 
 public class SnowmanCombat : MonoBehaviour
 {
+    public int snowmanId;
+    public bool isAlive;
+    public bool isNpc;
+
     public GameObject projectile;
     public GameObject snowmanModel;
     public List<Weapon> ownedWeapons;
@@ -12,6 +16,7 @@ public class SnowmanCombat : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        isAlive = true;
         ownedWeapons = new List<Weapon>()
         {
             new Weapon(GUN_NAME.PISTOL, 12, 12, 10000, false, 0, 10, 10, 6)
@@ -23,12 +28,11 @@ public class SnowmanCombat : MonoBehaviour
     void Update()
     {
         OnFireClick();
-        
     }
 
     private void OnFireClick()
     {
-        if (Input.GetKeyDown(KeyCode.Space) && selectedWeapon.CanFire())
+        if (!isNpc && isAlive && Input.GetKeyDown(KeyCode.Space) && selectedWeapon.CanFire())
         {
             FireProjectile();
             selectedWeapon.HandleShot(selectedWeapon);
@@ -45,6 +49,7 @@ public class SnowmanCombat : MonoBehaviour
 
         // Instantiate the projectile at the calculated position with the adjusted rotation
         GameObject projectileFired = Instantiate(projectile, spawnPosition, spawnRotation);
+        projectileFired.GetComponent<Projectile>().FiredBySnowmanId = snowmanId;
 
         Rigidbody rb = projectileFired.GetComponent<Rigidbody>();
         if (rb != null)
@@ -79,6 +84,17 @@ public class SnowmanCombat : MonoBehaviour
         //    // Apply velocity in the forward direction of the spawned object
         //    rb.velocity = snowmanModel.transform.forward * 10f;
         //}
+    }
+
+    /// <summary>
+    /// Kill this snowman instance
+    /// </summary>
+    public void Die()
+    {
+        isAlive = false;
+        Destroy(gameObject, 10);
+        Debug.Log("I died: " + snowmanId);
+        //TODO respawn
     }
 }
 
