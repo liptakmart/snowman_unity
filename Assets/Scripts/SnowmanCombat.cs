@@ -8,7 +8,6 @@ public class SnowmanCombat : MonoBehaviour
     public bool isAlive;
     public bool isNpc;
 
-    public GameObject projectile;
     public GameObject snowmanModel;
     public List<Weapon> ownedWeapons;
     public Weapon selectedWeapon;
@@ -48,7 +47,7 @@ public class SnowmanCombat : MonoBehaviour
         Quaternion spawnRotation = Quaternion.LookRotation(snowmanModel.transform.right);
 
         // Instantiate the projectile at the calculated position with the adjusted rotation
-        GameObject projectileFired = Instantiate(projectile, spawnPosition, spawnRotation);
+        GameObject projectileFired = Instantiate(State._prefabs.ProjectilePrefabRef, spawnPosition, spawnRotation);
         projectileFired.GetComponent<Projectile>().FiredBySnowmanId = snowmanId;
 
         Rigidbody rb = projectileFired.GetComponent<Rigidbody>();
@@ -57,33 +56,6 @@ public class SnowmanCombat : MonoBehaviour
             // Apply velocity in the new forward direction of the spawned projectile
             rb.velocity = projectileFired.transform.forward * -1 * selectedWeapon.ProjectileVelocity;
         }
-
-        //GameObject projectileFired = Instantiate(projectile, snowmanModel.transform.position + Vector3.forward * 2, Quaternion.identity);
-
-        //Vector3 projectilePos = snowmanModel.transform.position + new Vector3(2f,0,0);
-        ////spawn
-        //GameObject projectileFired = Instantiate(projectile, projectilePos, Quaternion.identity);
-
-
-
-
-        //add offest
-        //projectileFired.transform.rotation = transform.rotation;
-        //projectileFired.transform.position += new Vector3(2f,0,0);
-
-
-        //SET POSITION OF SNOWMAN GO
-        //SET OFFSET ACCORING TO TURN
-        //ADD VELOCITY ACCORDING TO TURN
-
-
-
-        //Rigidbody rb = projectileFired.GetComponent<Rigidbody>();
-        //if (rb != null)
-        //{
-        //    // Apply velocity in the forward direction of the spawned object
-        //    rb.velocity = snowmanModel.transform.forward * 10f;
-        //}
     }
 
     /// <summary>
@@ -93,11 +65,16 @@ public class SnowmanCombat : MonoBehaviour
     {
         isAlive = false;
         snowmanId = -1;
-        Destroy(gameObject, 10);
-        //TODO
-        //gameManagerRef.GetComponent<GameManager>().SpawnSnowman(isNpc);
+        State._state.GameManagerScriptObj.SpawnSnowman(isNpc);
 
-        Debug.Log("I died: " + snowmanId);
+        Collider col = GetComponent<Collider>();
+        Rigidbody rb = GetComponent<Rigidbody>();
+        if (col != null && rb != null)
+        {
+            Destroy(col);
+            Destroy(rb);
+        }
+        Destroy(gameObject, 10f);
     }
 }
 

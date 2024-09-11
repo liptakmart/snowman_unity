@@ -4,14 +4,18 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    public GameObject SnowmanPrefab;
-    public List<GameObject> SpawnPoints;
+    public GameObject GameManagerRef;
+    public GameObject SnowmanPrefabRef;
+    public GameObject ProjectilePrefabRef;
 
+    public List<GameObject> SpawnPoints;
+    
     private int _idSnowmanIdCounter = 1;
 
     // Start is called before the first frame update
     void Start()
     {
+        InitState();
         SpawnSnowman(false);
         SpawnSnowman(true);
     }
@@ -22,10 +26,21 @@ public class GameManager : MonoBehaviour
         
     }
 
+    /// <summary>
+    /// Initialzies global state of level
+    /// </summary>
+    private void InitState()
+    {
+        State._state.GameManagerRef = GameManagerRef;
+        State._state.GameManagerScriptObj = this;
+        State._state.SpawnPoints = SpawnPoints;
+        State._prefabs.SnowmanPrefabRef = SnowmanPrefabRef;
+        State._prefabs.ProjectilePrefabRef = ProjectilePrefabRef;
+    }
 
     public void SpawnSnowman(bool isNpc)
     {
-        GameObject snowman = Instantiate(SnowmanPrefab, GetSpawnPosition(), Quaternion.identity);
+        GameObject snowman = Instantiate(SnowmanPrefabRef, GetSpawnPosition(), Quaternion.identity);
         var newSnowman = snowman.GetComponent<SnowmanCombat>();
         newSnowman.snowmanId = _idSnowmanIdCounter++;
         newSnowman.isNpc = isNpc;
@@ -48,7 +63,21 @@ public class GameManager : MonoBehaviour
     }
 }
 
-public static class Constants
+public static class State
 {
+    public static LevelState _state = new LevelState();
+    public static Prefabs _prefabs = new Prefabs();
+}
 
+public class Prefabs
+{
+    public GameObject SnowmanPrefabRef;
+    public GameObject ProjectilePrefabRef;
+}
+
+public class LevelState
+{
+    public GameObject GameManagerRef;
+    public GameManager GameManagerScriptObj;
+    public List<GameObject> SpawnPoints;
 }

@@ -48,7 +48,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7ec952b501c48d04494ca962cae01156, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxSpeed: 10
+  movementSpeed: 5
   snowmanModel: {fileID: 8667266900197510032}
 --- !u!54 &8397305114551475881
 Rigidbody:
@@ -95,7 +95,6 @@ MonoBehaviour:
   snowmanId: 0
   isAlive: 0
   isNpc: 0
-  projectile: {fileID: 3975542845730912265, guid: 90ed7578d1a893c4ea06300564bd01ab, type: 3}
   snowmanModel: {fileID: 8667266900197510032}
 --- !u!1 &8397305114711874797
 GameObject:

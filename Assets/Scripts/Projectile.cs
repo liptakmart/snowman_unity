@@ -47,7 +47,7 @@ public class Projectile : MonoBehaviour
         //get parent
         var hitSnowman = collision.gameObject.GetComponent<SnowmanCombat>();
         //notify snowman and disable projectile
-        if (IsLethal && hitSnowman.isAlive && FiredBySnowmanId != hitSnowman.snowmanId)
+        if (hitSnowman != null && IsLethal && hitSnowman.isAlive && FiredBySnowmanId != hitSnowman.snowmanId)
         
             if (collision.collider.gameObject.name == "Cylinder")
             {

@@ -13,10 +13,14 @@ public class SpawnPoint : MonoBehaviour
     // This method is called by Unity in the editor to draw gizmos in the Scene view
     void OnDrawGizmos()
     {
-        // Set the Gizmo color
-        Gizmos.color = gizmoColor;
+        // Set the Gizmo color with 50% transparency
+        Color transparentColor = gizmoColor;
+        transparentColor.a = 0.5f; // Set alpha (transparency) to 0.5
 
-        // Draw a wireframe sphere at the object's position
+        // Apply the transparent color to the Gizmo
+        Gizmos.color = transparentColor;
+
+        // Draw a filled sphere at the object's position with the updated color
         Gizmos.DrawSphere(transform.position, gizmoRadius);
     }
 
