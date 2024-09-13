@@ -9,6 +9,12 @@ public class SnowmanCombat : MonoBehaviour
     public bool isNpc;
 
     public GameObject snowmanModel;
+
+    public GameObject pistolGo;
+    public GameObject shotgunGo;
+    public GameObject smgGo;
+
+    public List<Weapon> allWeapons;
     public List<Weapon> ownedWeapons;
     public Weapon selectedWeapon;
 
@@ -16,25 +22,66 @@ public class SnowmanCombat : MonoBehaviour
     void Start()
     {
         isAlive = true;
+
+        allWeapons = new List<Weapon>()
+        {
+            new Weapon(GUN_NAME.PISTOL, 12, 12, 10000, false, 0, 10, 10, 6, pistolGo),
+            new Weapon(GUN_NAME.SHOTGUN, 6, 6, 6, false, 0, 15, 20, 8, shotgunGo),
+            new Weapon(GUN_NAME.SMG, 30, 30, 30, true, 125, 20, 10, 8, smgGo),
+        };
+
         ownedWeapons = new List<Weapon>()
         {
-            new Weapon(GUN_NAME.PISTOL, 12, 12, 10000, false, 0, 10, 10, 6)
+            allWeapons[0],
+            allWeapons[1],
+            allWeapons[2],
         };
         selectedWeapon = ownedWeapons[0];
+
+        shotgunGo.SetActive(false);
+        smgGo.SetActive(false);
     }
 
     // Update is called once per frame
     void Update()
     {
         OnFireClick();
+        OnWeaponChange();
     }
 
     private void OnFireClick()
     {
-        if (!isNpc && isAlive && Input.GetKeyDown(KeyCode.Space) && selectedWeapon.CanFire())
+        if (!isNpc && isAlive && Input.GetKeyDown(KeyCode.Space) && selectedWeapon.MagazineNotEmpty())
         {
-            FireProjectile();
-            selectedWeapon.HandleShot(selectedWeapon);
+            if (selectedWeapon.MagazineNotEmpty())
+            {
+                FireProjectile();
+                selectedWeapon.HandleShotAfterward();
+            }
+            else if (selectedWeapon.CanReload())
+            {
+                //Cant fire, empty magazine
+                selectedWeapon.Reload();
+            }
+        }
+    }
+
+    private void OnWeaponChange()
+    {
+        if (!isNpc && isAlive && Input.GetKeyUp(KeyCode.Q))
+        {
+            int selectedWeaponIdx = ownedWeapons.IndexOf(selectedWeapon);
+            selectedWeapon.GameObjectRef.SetActive(false);
+            if (selectedWeaponIdx + 1 > ownedWeapons.Count - 1)
+            {
+                selectedWeapon = ownedWeapons[0];
+                
+            }
+            else
+            {
+                selectedWeapon = ownedWeapons[selectedWeaponIdx + 1];
+            }
+            selectedWeapon.GameObjectRef.SetActive(true);
         }
     }
     
@@ -115,6 +162,11 @@ public class Weapon
     /// </summary>
     public float ReloadTimeMilisec { get; set; }
 
+    /// <summary>
+    /// Reference for instantiated game object Weapon
+    /// </summary>
+    public GameObject GameObjectRef { get; set; }
+
     public Weapon(
         GUN_NAME gun, 
         int ammoInMagazine, 
@@ -124,7 +176,8 @@ public class Weapon
         float rateOfFireMilisec, 
         float projectileVelocity, 
         float projectileMass,
-        float reloadTimeMilisec)
+        float reloadTimeMilisec,
+        GameObject gameObjectRef)
     {
         Gun = gun;
         AmmoInMagazine = ammoInMagazine;
@@ -135,11 +188,21 @@ public class Weapon
         ProjectileVelocity= projectileVelocity;
         ProjectileMass= projectileMass;
         ReloadTimeMilisec= reloadTimeMilisec;
+        GameObjectRef = gameObjectRef;
     }
 
-    public bool CanFire()
+    public bool MagazineNotEmpty()
     {
         if (AmmoInMagazine > 0)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public bool CanReload()
+    {
+        if (SpareAmmo > 0)
         {
             return true;
         }
@@ -149,10 +212,28 @@ public class Weapon
     /// <summary>
     /// After shot has been fired. Handle apropriate action, such as reduce ammo, reload etc.
     /// </summary>
-    /// <param name="weaponFired"></param>
-    public void HandleShot(Weapon weaponFired)
+    public void HandleShotAfterward()
     {
+        AmmoInMagazine--;
+        if (Gun == GUN_NAME.PISTOL)
+        {
+            
+        }
+        else if (Gun == GUN_NAME.SHOTGUN)
+        {
 
+        }
+        else if (Gun == GUN_NAME.SMG)
+        {
+
+        }
+    }
+
+    public void Reload()
+    {
+        int newAmmo = SpareAmmo >= MagazineCapacity ? MagazineCapacity : SpareAmmo;
+        AmmoInMagazine = newAmmo;
+        SpareAmmo -= newAmmo;
     }
 }
 

@@ -168,7 +168,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   GameManagerRef: {fileID: 36597792}
-  SnowmanPrefabRef: {fileID: 8397305114551475893, guid: 8b87de472eb0a014097fe60c2146bfca, type: 3}
+  SnowmanPrefabRef: {fileID: 2096479495286192343, guid: f020209d23e5df34890281fe8f6542be, type: 3}
   ProjectilePrefabRef: {fileID: 3975542845730912265, guid: 90ed7578d1a893c4ea06300564bd01ab, type: 3}
   SpawnPoints:
   - {fileID: 8743183836161900165}
