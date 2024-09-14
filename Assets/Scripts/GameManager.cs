@@ -7,6 +7,7 @@ public class GameManager : MonoBehaviour
     public GameObject GameManagerRef;
     public GameObject SnowmanPrefabRef;
     public GameObject ProjectilePrefabRef;
+    public GameObject CanvasRef;
 
     public List<GameObject> SpawnPoints;
     
@@ -16,14 +17,21 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         InitState();
-        SpawnSnowman(false);
+        GameObject player = SpawnSnowman(false);
+        State._state.PlayersSnowmanRef.Add(player);
         SpawnSnowman(true);
+        Invoke("InitAfterStart", 0.5f);
     }
 
     // Update is called once per frame
     void Update()
     {
         
+    }
+
+    private void InitAfterStart()
+    {
+        State._state.Canvas.GetComponent<CanvasManager>().UpdateWeaponUI();
     }
 
     /// <summary>
@@ -34,16 +42,18 @@ public class GameManager : MonoBehaviour
         State._state.GameManagerRef = GameManagerRef;
         State._state.GameManagerScriptObj = this;
         State._state.SpawnPoints = SpawnPoints;
+        State._state.Canvas = CanvasRef;
         State._prefabs.SnowmanPrefabRef = SnowmanPrefabRef;
         State._prefabs.ProjectilePrefabRef = ProjectilePrefabRef;
     }
 
-    public void SpawnSnowman(bool isNpc)
+    public GameObject SpawnSnowman(bool isNpc)
     {
         GameObject snowman = Instantiate(SnowmanPrefabRef, GetSpawnPosition(), Quaternion.identity);
         var newSnowman = snowman.GetComponent<SnowmanCombat>();
         newSnowman.snowmanId = _idSnowmanIdCounter++;
         newSnowman.isNpc = isNpc;
+        return snowman;
     }
 
     private Vector3 GetSpawnPosition()
@@ -79,5 +89,7 @@ public class LevelState
 {
     public GameObject GameManagerRef;
     public GameManager GameManagerScriptObj;
-    public List<GameObject> SpawnPoints;
+    public List<GameObject> SpawnPoints = new List<GameObject>();
+    public List<GameObject> PlayersSnowmanRef = new List<GameObject>();
+    public GameObject Canvas;
 }

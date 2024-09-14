@@ -31,7 +31,7 @@ public class Projectile : MonoBehaviour
         // Ignore collisions between the projectile's layer and the ignore layer
         Physics.IgnoreLayerCollision(projectileLayer, snowmanLayer);
         //ignore self
-        //Physics.IgnoreCollision(projectileCollider, ignoreCollider);
+        Physics.IgnoreLayerCollision(projectileLayer, projectileLayer);
 
         Destroy(this.gameObject, 10f);
     }
