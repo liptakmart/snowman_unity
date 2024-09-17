@@ -15,20 +15,47 @@ public class SnowmanCombat : MonoBehaviour
     public GameObject shotgunGo;
     public GameObject smgGo;
 
+    public AudioClip pistolShotAudio;
+    public AudioClip pistolReloadAudio;
+    public AudioClip pistolEmptyAudio;
+
     public List<Weapon> allWeapons;
     public List<Weapon> ownedWeapons;
     public Weapon selectedWeapon;
+
+    private AudioSource audioSource;
+
+    /// <summary>
+    /// Is reloading in process
+    /// </summary>
+    private bool isReloading;
+    /// <summary>
+    /// Count time in seconds for reload purposes
+    /// </summary>
+    private float reloadTimeCounter;
+    /// <summary>
+    /// Time to reload, upper bound in seconds
+    /// </summary>
+    private float reloadFinishTime;
+    /// <summary>
+    /// Count time in seconds for rate of fire purposes
+    /// </summary>
+    private float autoShotTimeCounter;
 
     // Start is called before the first frame update
     void Start()
     {
         isAlive = true;
+        isReloading = false;
+        reloadTimeCounter = 0;
+        autoShotTimeCounter = int.MaxValue;
+        audioSource = GetComponent<AudioSource>();
 
         allWeapons = new List<Weapon>()
         {
             new Weapon("Pistol", GUN_NAME.PISTOL, 12, 12, 10000, false, 0, 10, 10, 6, pistolGo),
             new Weapon("Shotgun", GUN_NAME.SHOTGUN, 6, 6, 6, false, 0, 15, 20, 8, shotgunGo),
-            new Weapon("Smg", GUN_NAME.SMG, 30, 30, 30, true, 125, 20, 10, 8, smgGo),
+            new Weapon("Smg", GUN_NAME.SMG, 30, 30, 30, true, 0.125f, 20, 10, 8, smgGo),
         };
 
         ownedWeapons = new List<Weapon>()
@@ -48,23 +75,92 @@ public class SnowmanCombat : MonoBehaviour
     {
         OnFireClick();
         OnWeaponChange();
+
+        if (isReloading)
+        {
+            reloadTimeCounter += Time.deltaTime;
+            if (reloadTimeCounter >= reloadFinishTime)
+            {
+                //finish reloading
+                selectedWeapon.Reload();
+                //reset
+                isReloading = false;
+                reloadTimeCounter = 0;
+                reloadFinishTime = 0;
+                autoShotTimeCounter = int.MaxValue;
+                StopAudio();
+                //update UI
+                State._state.Canvas.GetComponent<CanvasManager>().UpdateWeaponUI();
+            }
+        }
     }
 
     private void OnFireClick()
     {
-        if (!isNpc && isAlive && Input.GetKeyDown(KeyCode.Space) && selectedWeapon.MagazineNotEmpty())
+        if (isNpc && !isAlive)
         {
-            if (selectedWeapon.MagazineNotEmpty())
+            return;
+        }
+
+        if (selectedWeapon.IsAutomatic)
+        {
+            if (Input.GetKey(KeyCode.Space))
             {
-                FireProjectile();
-                selectedWeapon.HandleShotAfterward();
+                if (autoShotTimeCounter >= selectedWeapon.RateOfFireInSec)
+                {
+                    autoShotTimeCounter = 0;
+                }
+                else
+                {
+                    autoShotTimeCounter += Time.deltaTime;
+                    return;
+                }
+
+                if (selectedWeapon.MagazineNotEmpty() && !isReloading)
+                {
+                    PlayAudioPistolShot();
+                    FireProjectile();
+                    selectedWeapon.HandleShotAfterward();
+                }
+                else if (selectedWeapon.CanReload() && !isReloading)
+                {
+                    //PlayAudioPistolEmpty(); TODO
+                    //Start reloading
+                    PlayAudioPistolReload();
+                    reloadTimeCounter = 0;
+                    isReloading = true;
+                    reloadFinishTime = selectedWeapon.ReloadTimeSec;
+                }
+                State._state.Canvas.GetComponent<CanvasManager>().UpdateWeaponUI();
             }
-            else if (selectedWeapon.CanReload())
+
+            if (Input.GetKeyUp(KeyCode.Space))
             {
-                //Cant fire, empty magazine
-                selectedWeapon.Reload();
+                //reset
+                autoShotTimeCounter = int.MaxValue;
             }
-            State._state.Canvas.GetComponent<CanvasManager>().UpdateWeaponUI();
+        }
+        else
+        {
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                if (selectedWeapon.MagazineNotEmpty() && !isReloading)
+                {
+                    PlayAudioPistolShot();
+                    FireProjectile();
+                    selectedWeapon.HandleShotAfterward();
+                }
+                else if (selectedWeapon.CanReload() && !isReloading)
+                {
+                    //PlayAudioPistolEmpty(); TODO
+                    //Start reloading
+                    PlayAudioPistolReload();
+                    reloadTimeCounter = 0;
+                    isReloading = true;
+                    reloadFinishTime = selectedWeapon.ReloadTimeSec;
+                }
+                State._state.Canvas.GetComponent<CanvasManager>().UpdateWeaponUI();
+            }
         }
     }
 
@@ -82,6 +178,16 @@ public class SnowmanCombat : MonoBehaviour
             else
             {
                 selectedWeapon = ownedWeapons[selectedWeaponIdx + 1];
+            }
+
+            if (isReloading)
+            {
+                //reset
+                StopAudio();
+                isReloading = false;
+                reloadTimeCounter = 0;
+                reloadFinishTime = 0;
+                autoShotTimeCounter = int.MaxValue;
             }
             selectedWeapon.GameObjectRef.SetActive(true);
             State._state.Canvas.GetComponent<CanvasManager>().UpdateWeaponUI();
@@ -180,6 +286,38 @@ public class SnowmanCombat : MonoBehaviour
         State._state.Canvas.GetComponent<CanvasManager>().UpdateWeaponUI();
         Destroy(gameObject, 10f);
     }
+
+    /// <summary>
+    /// Plays audio for pistol shot
+    /// </summary>
+    private void PlayAudioPistolShot()
+    {
+        audioSource.PlayOneShot(pistolShotAudio);
+    }
+
+    /// <summary>
+    /// Plays audio for pistol reload
+    /// </summary>
+    private void PlayAudioPistolReload()
+    {
+        audioSource.PlayOneShot(pistolReloadAudio);
+    }
+
+    /// <summary>
+    /// Plays audio for pistol empty shot
+    /// </summary>
+    private void PlayAudioPistolEmpty()
+    {
+        audioSource.PlayOneShot(pistolEmptyAudio);
+    }
+
+    /// <summary>
+    /// Stops audio
+    /// </summary>
+    private void StopAudio() 
+    {
+        audioSource.Stop();
+    }
 }
 
 public class Weapon
@@ -208,9 +346,9 @@ public class Weapon
     /// </summary>
     public bool IsAutomatic { get; set; }
     /// <summary>
-    /// Pause between projectiles in full auto in milisec
+    /// Pause between projectiles in full auto in sec
     /// </summary>
-    public float RateOfFireMilisec { get; set; }
+    public float RateOfFireInSec { get; set; }
     /// <summary>
     /// Velocity of fired projectile
     /// </summary>
@@ -220,9 +358,9 @@ public class Weapon
     /// </summary>
     public float ProjectileMass { get; set; }
     /// <summary>
-    /// Reload time in milisec between magazines
+    /// Reload time in sec between magazines
     /// </summary>
-    public float ReloadTimeMilisec { get; set; }
+    public float ReloadTimeSec { get; set; }
 
     /// <summary>
     /// Reference for instantiated game object Weapon
@@ -236,10 +374,10 @@ public class Weapon
         int magazineCapacity, 
         int spareAmmo, 
         bool isAutomatic, 
-        float rateOfFireMilisec, 
+        float rateOfFireSec, 
         float projectileVelocity, 
         float projectileMass,
-        float reloadTimeMilisec,
+        float reloadTimeSec,
         GameObject gameObjectRef)
     {
         Name = name;
@@ -248,10 +386,10 @@ public class Weapon
         MagazineCapacity = magazineCapacity;
         SpareAmmo = spareAmmo;
         IsAutomatic = isAutomatic;
-        RateOfFireMilisec= rateOfFireMilisec;
+        RateOfFireInSec= rateOfFireSec;
         ProjectileVelocity= projectileVelocity;
         ProjectileMass= projectileMass;
-        ReloadTimeMilisec= reloadTimeMilisec;
+        ReloadTimeSec= reloadTimeSec;
         GameObjectRef = gameObjectRef;
     }
 
@@ -295,6 +433,8 @@ public class Weapon
 
     public void Reload()
     {
+        State._state.Canvas.GetComponent<CanvasManager>().SetReloadingText();
+        //TODO wait
         int newAmmo = SpareAmmo >= MagazineCapacity ? MagazineCapacity : SpareAmmo;
         AmmoInMagazine = newAmmo;
         SpareAmmo -= newAmmo;
