@@ -13,7 +13,6 @@ public class GameManager : MonoBehaviour
     
     private int _idSnowmanIdCounter = 1;
 
-    // Start is called before the first frame update
     void Start()
     {
         InitState();
@@ -60,14 +59,29 @@ public class GameManager : MonoBehaviour
     {
         if (SpawnPoints != null && SpawnPoints.Count > 0)
         {
-            var spawnPoint = SpawnPoints[Random.Range(0, SpawnPoints.Count - 1)];
-            var script = spawnPoint.GetComponent<SpawnPoint>();
-            if (script.IsEmpty())
+            HashSet<int> visitedIdxs = new HashSet<int>();
+            while(visitedIdxs.Count < SpawnPoints.Count)
             {
-                //TODO handle if spawn point is filled, generate again
-                return spawnPoint.transform.position;
+                int idx = Random.Range(0, SpawnPoints.Count - 1);
+                var sp = SpawnPoints[idx].GetComponent<SpawnPoint>();
+                if (sp.IsEmpty())
+                {
+                    return sp.transform.position;
+                }
+                else
+                {
+                    if (visitedIdxs.Contains(idx))
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        visitedIdxs.Add(idx);
+                    }
+                }
             }
-            
+            //all are filled, return first
+            return SpawnPoints[0].transform.position;
         }
         throw new UnityException("Spawn points not initialzied properly!");
     }
