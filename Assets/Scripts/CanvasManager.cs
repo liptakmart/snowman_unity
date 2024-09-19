@@ -26,8 +26,8 @@ public class CanvasManager : MonoBehaviour
 
         // Set the text
         SnowmanCombat sc = State._state.PlayersSnowmanRef[0].GetComponent<SnowmanCombat>();
-        Weapon weapon = sc.selectedWeapon;
-        ammoTextComponent.text = $"{weapon.Name} {weapon.AmmoInMagazine}/{weapon.SpareAmmo}";
+        Gun gun = sc.selectedGun;
+        ammoTextComponent.text = $"{gun.Name} {gun.AmmoInMagazine}/{gun.SpareAmmo}";
     }
 
     public void SetReloadingText()

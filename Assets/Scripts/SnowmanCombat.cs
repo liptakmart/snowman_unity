@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
@@ -19,178 +20,222 @@ public class SnowmanCombat : MonoBehaviour
     public AudioClip pistolReloadAudio;
     public AudioClip pistolEmptyAudio;
 
-    public List<Weapon> allWeapons;
-    public List<Weapon> ownedWeapons;
-    public Weapon selectedWeapon;
+    public AudioClip smgShotAudio;
+    public AudioClip smgReloadAudio;
+    public AudioClip smgEmptyAudio;
+
+    public AudioClip shotgunShotAudio;
+    public AudioClip shotgunReload;
+    public AudioClip shotgunEmptyAudio;
+
+    public List<Gun> ownedGuns;
+    public Gun selectedGun;
 
     private AudioSource audioSource;
-
-    /// <summary>
-    /// Is reloading in process
-    /// </summary>
-    private bool isReloading;
-    /// <summary>
-    /// Count time in seconds for reload purposes
-    /// </summary>
-    private float reloadTimeCounter;
-    /// <summary>
-    /// Time to reload, upper bound in seconds
-    /// </summary>
-    private float reloadFinishTime;
-    /// <summary>
-    /// Count time in seconds for rate of fire purposes
-    /// </summary>
-    private float autoShotTimeCounter;
 
     // Start is called before the first frame update
     void Start()
     {
         isAlive = true;
-        isReloading = false;
-        reloadTimeCounter = 0;
-        autoShotTimeCounter = int.MaxValue;
         audioSource = GetComponent<AudioSource>();
 
-        allWeapons = new List<Weapon>()
-        {
-            new Weapon("Pistol", GUN_NAME.PISTOL, 12, 12, 10000, false, 0, 10, 10, 6, pistolGo),
-            new Weapon("Shotgun", GUN_NAME.SHOTGUN, 6, 6, 6, false, 0, 15, 20, 8, shotgunGo),
-            new Weapon("Smg", GUN_NAME.SMG, 30, 30, 30, true, 0.125f, 20, 10, 8, smgGo),
-        };
+        ownedGuns = new List<Gun>();
 
-        ownedWeapons = new List<Weapon>()
-        {
-            allWeapons[0],
-            allWeapons[1],
-            allWeapons[2],
-        };
-        selectedWeapon = ownedWeapons[0];
+        // Create separate GameObjects for gun components
+        GameObject pistolGunObject = new GameObject("PistolGun");
+        pistolGunObject.transform.parent = this.transform;
+        Pistol pistolObj = pistolGunObject.AddComponent<Pistol>();
+        pistolObj.GameObjectRef = pistolGo; // Assign the visual model
+        ownedGuns.Add(pistolObj);
 
+        GameObject shotgunGunObject = new GameObject("ShotgunGun");
+        shotgunGunObject.transform.parent = this.transform;
+        Shotgun shotgunObj = shotgunGunObject.AddComponent<Shotgun>();
+        shotgunObj.GameObjectRef = shotgunGo;
+        ownedGuns.Add(shotgunObj);
+
+        GameObject smgGunObject = new GameObject("SmgGun");
+        smgGunObject.transform.parent = this.transform;
+        Smg smgObj = smgGunObject.AddComponent<Smg>();
+        smgObj.GameObjectRef = smgGo;
+        ownedGuns.Add(smgObj);
+
+        selectedGun = ownedGuns[0];
+
+        pistolGo.SetActive(true);
         shotgunGo.SetActive(false);
         smgGo.SetActive(false);
+
+        SubscribeToGunEvents(selectedGun);
+        State._state.Canvas.GetComponent<CanvasManager>().UpdateWeaponUI();
     }
 
     // Update is called once per frame
     void Update()
     {
-        OnFireClick();
-        OnWeaponChange();
-
-        if (isReloading)
-        {
-            reloadTimeCounter += Time.deltaTime;
-            if (reloadTimeCounter >= reloadFinishTime)
-            {
-                //finish reloading
-                selectedWeapon.Reload();
-                //reset
-                isReloading = false;
-                reloadTimeCounter = 0;
-                reloadFinishTime = 0;
-                autoShotTimeCounter = int.MaxValue;
-                StopAudio();
-                //update UI
-                State._state.Canvas.GetComponent<CanvasManager>().UpdateWeaponUI();
-            }
-        }
-    }
-
-    private void OnFireClick()
-    {
-        if (isNpc && !isAlive)
+        if (isNpc || !isAlive)
         {
             return;
         }
 
-        if (selectedWeapon.IsAutomatic)
+        OnFireClick();
+        OnWeaponChange();
+        OnGunReload();
+    }
+
+    private void OnDestroy()
+    {
+        if (selectedGun != null)
         {
-            if (Input.GetKey(KeyCode.Space))
-            {
-                if (autoShotTimeCounter >= selectedWeapon.RateOfFireInSec)
-                {
-                    autoShotTimeCounter = 0;
-                }
-                else
-                {
-                    autoShotTimeCounter += Time.deltaTime;
-                    return;
-                }
+            UnsubscribeFromGunEvents(selectedGun);
+        }
+    }
 
-                if (selectedWeapon.MagazineNotEmpty() && !isReloading)
-                {
-                    PlayAudioPistolShot();
-                    FireProjectile();
-                    selectedWeapon.HandleShotAfterward();
-                }
-                else if (selectedWeapon.CanReload() && !isReloading)
-                {
-                    //PlayAudioPistolEmpty(); TODO
-                    //Start reloading
-                    PlayAudioPistolReload();
-                    reloadTimeCounter = 0;
-                    isReloading = true;
-                    reloadFinishTime = selectedWeapon.ReloadTimeSec;
-                }
-                State._state.Canvas.GetComponent<CanvasManager>().UpdateWeaponUI();
-            }
+    private void SubscribeToGunEvents(Gun gun)
+    {
+        gun.OnReloadStarted += HandleReloadStarted;
+        gun.OnReloadFinished += HandleReloadFinished;
+        gun.OnReloadCanceled += HandleReloadCanceled;
+        gun.OnFired += HandleFired;
+        gun.OnReadyToFire += HandleReadyToFire; // Subscribe to new event
+        gun.OnAmmoChanged += HandleAmmoChanged;
+    }
 
-            if (Input.GetKeyUp(KeyCode.Space))
+    private void UnsubscribeFromGunEvents(Gun gun)
+    {
+        gun.OnReloadStarted -= HandleReloadStarted;
+        gun.OnReloadFinished -= HandleReloadFinished;
+        gun.OnReloadCanceled -= HandleReloadCanceled;
+        gun.OnFired -= HandleFired;
+        gun.OnReadyToFire -= HandleReadyToFire; // Unsubscribe from new event
+        gun.OnAmmoChanged -= HandleAmmoChanged;
+    }
+
+    private void HandleReloadStarted()
+    {
+        Debug.Log($"{selectedGun.Name} reload started.");
+        // Play reload sound if applicable
+        PlayReloadAudio();
+        // Update UI if necessary
+        State._state.Canvas.GetComponent<CanvasManager>().UpdateWeaponUI();
+    }
+
+    private void HandleReloadFinished()
+    {
+        Debug.Log($"{selectedGun.Name} reload finished.");
+        // Update UI if necessary
+        State._state.Canvas.GetComponent<CanvasManager>().UpdateWeaponUI();
+    }
+
+    private void HandleReloadCanceled()
+    {
+        Debug.Log($"{selectedGun.Name} reload canceled.");
+        // Stop reload sound if applicable
+        StopAudio();
+        // Update UI if necessary
+        State._state.Canvas.GetComponent<CanvasManager>().UpdateWeaponUI();
+    }
+
+    private void HandleFired()
+    {
+        Debug.Log($"{selectedGun.Name} fired.");
+        // Play firing sound
+        PlayShotAudio();
+        // Fire the projectile
+        FireProjectile();
+        // Update UI if necessary
+        State._state.Canvas.GetComponent<CanvasManager>().UpdateWeaponUI();
+    }
+
+    private void HandleReadyToFire()
+    {
+        Debug.Log($"{selectedGun.Name} is ready to fire again.");
+        // Update UI if necessary
+    }
+
+    private void HandleAmmoChanged(int ammoInMagazine, int spareAmmo)
+    {
+        Debug.Log($"{selectedGun.Name} ammo changed: {ammoInMagazine} / {spareAmmo}");
+        // Update UI with new ammo counts
+        State._state.Canvas.GetComponent<CanvasManager>().UpdateWeaponUI();
+    }
+
+    private void OnFireClick()
+    {
+        bool clickedFire = false;
+        if (!selectedGun.IsAutomatic && Input.GetKeyUp(KeyCode.Space))
+        {
+            clickedFire = true;
+            if (!selectedGun.IsEmptyMagazine())
             {
-                //reset
-                autoShotTimeCounter = int.MaxValue;
+                selectedGun.Fire();
             }
         }
-        else
+        else if (selectedGun.IsAutomatic && Input.GetKey(KeyCode.Space))
         {
-            if (Input.GetKeyDown(KeyCode.Space))
+            clickedFire = true;
+            if (!selectedGun.IsEmptyMagazine())
             {
-                if (selectedWeapon.MagazineNotEmpty() && !isReloading)
-                {
-                    PlayAudioPistolShot();
-                    FireProjectile();
-                    selectedWeapon.HandleShotAfterward();
-                }
-                else if (selectedWeapon.CanReload() && !isReloading)
-                {
-                    //PlayAudioPistolEmpty(); TODO
-                    //Start reloading
-                    PlayAudioPistolReload();
-                    reloadTimeCounter = 0;
-                    isReloading = true;
-                    reloadFinishTime = selectedWeapon.ReloadTimeSec;
-                }
-                State._state.Canvas.GetComponent<CanvasManager>().UpdateWeaponUI();
+                selectedGun.Fire();
             }
+        }
+
+        if (clickedFire && selectedGun.IsEmptyMagazine())
+        {
+            PlayEmptyAudio();
         }
     }
 
     private void OnWeaponChange()
     {
-        if (!isNpc && isAlive && Input.GetKeyUp(KeyCode.Q))
+        if (Input.GetKeyUp(KeyCode.Q))
         {
-            int selectedWeaponIdx = ownedWeapons.IndexOf(selectedWeapon);
-            selectedWeapon.GameObjectRef.SetActive(false);
-            if (selectedWeaponIdx + 1 > ownedWeapons.Count - 1)
+            if (ownedGuns.Count == 1)
             {
-                selectedWeapon = ownedWeapons[0];
-                
+                return;
             }
-            else
-            {
-                selectedWeapon = ownedWeapons[selectedWeaponIdx + 1];
-            }
+
+            int selectedWeaponIdx = ownedGuns.IndexOf(selectedGun);
+            UnsubscribeFromGunEvents(selectedGun);
+            bool isReloading = selectedGun.IsReloading();
+            selectedGun.GameObjectRef.SetActive(false);
 
             if (isReloading)
             {
                 //reset
-                StopAudio();
-                isReloading = false;
-                reloadTimeCounter = 0;
-                reloadFinishTime = 0;
-                autoShotTimeCounter = int.MaxValue;
+                selectedGun.CancelReload();
+                selectedGun.CancelFireDelay();
             }
-            selectedWeapon.GameObjectRef.SetActive(true);
+
+            if (selectedWeaponIdx + 1 > ownedGuns.Count - 1)
+            {
+                selectedGun = ownedGuns[0];
+            }
+            else
+            {
+                selectedGun = ownedGuns[selectedWeaponIdx + 1];
+            }
+
+            selectedGun.GameObjectRef.SetActive(true);
+            SubscribeToGunEvents(selectedGun);
+
+            StopAudio();
+            // Update UI
             State._state.Canvas.GetComponent<CanvasManager>().UpdateWeaponUI();
+        }
+    }
+
+    /// <summary>
+    /// On reload key clicked
+    /// </summary>
+    private void OnGunReload()
+    {
+        if (!selectedGun.IsReloading() && selectedGun.SpareAmmo > 0 && Input.GetKeyUp(KeyCode.R))
+        {
+            if (!selectedGun.IsMagazineFull() && selectedGun.CanReload())
+            {
+                selectedGun.Reload();
+            }
         }
     }
 
@@ -202,11 +247,17 @@ public class SnowmanCombat : MonoBehaviour
         // Since the snowmanModel's forward is not aligned as expected, let's use its right axis for the projectile's line of sight
         Quaternion spawnRotation = Quaternion.LookRotation(snowmanModel.transform.right);
 
-        switch (selectedWeapon.Gun)
+        if (selectedGun is Pistol)
         {
-            case GUN_NAME.PISTOL: FirePistolProjectile(spawnPosition, spawnRotation); break;
-            case GUN_NAME.SHOTGUN: FireShotgunProjectile(spawnPosition, spawnRotation); break;
-            case GUN_NAME.SMG: FireSmgProjectile(spawnPosition, spawnRotation); break;
+            FirePistolProjectile(spawnPosition, spawnRotation);
+        }
+        else if (selectedGun is Shotgun)
+        {
+            FireShotgunProjectile(spawnPosition, spawnRotation);
+        }
+        else if (selectedGun is Smg)
+        {
+            FireSmgProjectile(spawnPosition, spawnRotation);
         }
     }
 
@@ -218,7 +269,7 @@ public class SnowmanCombat : MonoBehaviour
         if (rb != null)
         {
             // Apply velocity in the new forward direction of the spawned projectile
-            rb.velocity = projectile.transform.forward * -1 * selectedWeapon.ProjectileVelocity;
+            rb.velocity = projectile.transform.forward * -1 * selectedGun.ProjectileVelocity;
         }
     }
 
@@ -244,7 +295,7 @@ public class SnowmanCombat : MonoBehaviour
                 Vector3 adjustedDirection = rotation * forward;
 
                 // Apply the adjusted velocity
-                rb.velocity = adjustedDirection.normalized * selectedWeapon.ProjectileVelocity;
+                rb.velocity = adjustedDirection.normalized * selectedGun.ProjectileVelocity;
             }
         }
     }
@@ -257,7 +308,7 @@ public class SnowmanCombat : MonoBehaviour
         if (rb != null)
         {
             // Apply velocity in the new forward direction of the spawned projectile
-            rb.velocity = projectile.transform.forward * -1 * selectedWeapon.ProjectileVelocity;
+            rb.velocity = projectile.transform.forward * -1 * selectedGun.ProjectileVelocity;
         }
     }
 
@@ -288,42 +339,124 @@ public class SnowmanCombat : MonoBehaviour
     }
 
     /// <summary>
-    /// Plays audio for pistol shot
-    /// </summary>
-    private void PlayAudioPistolShot()
-    {
-        audioSource.PlayOneShot(pistolShotAudio);
-    }
-
-    /// <summary>
-    /// Plays audio for pistol reload
-    /// </summary>
-    private void PlayAudioPistolReload()
-    {
-        audioSource.PlayOneShot(pistolReloadAudio);
-    }
-
-    /// <summary>
-    /// Plays audio for pistol empty shot
-    /// </summary>
-    private void PlayAudioPistolEmpty()
-    {
-        audioSource.PlayOneShot(pistolEmptyAudio);
-    }
-
-    /// <summary>
     /// Stops audio
     /// </summary>
     private void StopAudio() 
     {
         audioSource.Stop();
     }
+
+    /// <summary>
+    /// Plays reload audio clip for selected gun
+    /// </summary>
+    private void PlayReloadAudio()
+    {
+        AudioClip clipToPlay = null;
+        float reloadTime = selectedGun.ReloadTimeSec;
+        float clipLength = 0f;
+
+        if (selectedGun is Pistol)
+        {
+            clipToPlay = pistolReloadAudio;
+        }
+        else if (selectedGun is Shotgun)
+        {
+            clipToPlay = shotgunReload;
+        }
+        else if (selectedGun is Smg)
+        {
+            clipToPlay = smgReloadAudio;
+        }
+
+        if (clipToPlay != null)
+        {
+            clipLength = clipToPlay.length;
+
+            // Calculate the required pitch adjustment
+            float pitch = clipLength / reloadTime;
+
+            // Clamp the pitch to prevent extreme adjustments
+            pitch = Mathf.Clamp(pitch, 0.5f, 2f);
+
+            // Set the pitch on the audio source
+            audioSource.pitch = pitch;
+
+            // Play the audio clip
+            audioSource.PlayOneShot(clipToPlay);
+
+            // Start a coroutine to reset the pitch after the adjusted playback duration
+            StartCoroutine(ResetAudioPitchAfterDelay(clipLength / pitch));
+        }
+    }
+
+    private IEnumerator ResetAudioPitchAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        audioSource.pitch = 1f;
+    }
+
+
+    /// <summary>
+    /// Plays shot audio clip for selected gun
+    /// </summary>
+    private void PlayShotAudio()
+    {
+        if (selectedGun is Pistol)
+        {
+            audioSource.PlayOneShot(pistolShotAudio);
+        }
+        else if (selectedGun is Shotgun)
+        {
+            float clipLength = shotgunShotAudio.length;
+            // Calculate the required pitch adjustment
+            float pitch = clipLength / selectedGun.FireDelayInSec;
+
+            // Clamp the pitch to prevent extreme adjustments
+            pitch = Mathf.Clamp(pitch, 0.5f, 2f);
+
+            // Set the pitch on the audio source
+            audioSource.pitch = pitch;
+
+            // Play the audio clip
+            audioSource.PlayOneShot(shotgunShotAudio);
+
+            // Start a coroutine to reset the pitch after the adjusted playback duration
+            StartCoroutine(ResetAudioPitchAfterDelay(clipLength / pitch));
+        }
+        else if (selectedGun is Smg)
+        {
+            audioSource.PlayOneShot(smgShotAudio);
+        }
+    }
+
+    /// <summary>
+    /// Play empty click audio clip for selected gun
+    /// </summary>
+    private void PlayEmptyAudio()
+    {
+        //prevent duplical plays
+        if (audioSource.isPlaying)
+        {
+            return;
+        }
+
+        if (selectedGun is Pistol)
+        {
+            audioSource.PlayOneShot(pistolEmptyAudio);
+        }
+        else if (selectedGun is Shotgun)
+        {
+            audioSource.PlayOneShot(shotgunEmptyAudio);
+        }        
+        else if (selectedGun is Smg)
+        {
+            audioSource.PlayOneShot(smgEmptyAudio);
+        } 
+    }
 }
 
-public class Weapon
+public abstract class Gun : MonoBehaviour
 {
-    public GUN_NAME Gun { get; set; }
-
     /// <summary>
     /// Name of the gun
     /// </summary>
@@ -332,7 +465,7 @@ public class Weapon
     /// <summary>
     /// Current ammo in magazine
     /// </summary>
-    public int AmmoInMagazine {get; set;}
+    public int AmmoInMagazine { get; set; }
     /// <summary>
     /// Total magazine capacity
     /// </summary>
@@ -346,10 +479,6 @@ public class Weapon
     /// </summary>
     public bool IsAutomatic { get; set; }
     /// <summary>
-    /// Pause between projectiles in full auto in sec
-    /// </summary>
-    public float RateOfFireInSec { get; set; }
-    /// <summary>
     /// Velocity of fired projectile
     /// </summary>
     public float ProjectileVelocity { get; set; }
@@ -361,89 +490,236 @@ public class Weapon
     /// Reload time in sec between magazines
     /// </summary>
     public float ReloadTimeSec { get; set; }
+    /// <summary>
+    /// Delay after firing before the gun can fire again, in seconds.
+    /// </summary>
+    public float FireDelayInSec { get; set; }
 
     /// <summary>
     /// Reference for instantiated game object Weapon
     /// </summary>
     public GameObject GameObjectRef { get; set; }
 
-    public Weapon(
-        string name,
-        GUN_NAME gun, 
-        int ammoInMagazine, 
-        int magazineCapacity, 
-        int spareAmmo, 
-        bool isAutomatic, 
-        float rateOfFireSec, 
-        float projectileVelocity, 
-        float projectileMass,
-        float reloadTimeSec,
-        GameObject gameObjectRef)
+    protected bool isReloading = false;
+    protected Coroutine reloadCoroutine;
+
+    // New properties for firing delay
+    protected bool canFire = true;
+    protected Coroutine fireDelayCoroutine;
+
+    // Events
+    public event Action OnReloadStarted;
+    public event Action OnReloadFinished;
+    public event Action OnReloadCanceled;
+    public event Action OnFired;
+    public event Action OnReadyToFire;
+    public event Action<int, int> OnAmmoChanged; // Current ammo, Spare ammo
+
+    protected virtual void Awake()
     {
-        Name = name;
-        Gun = gun;
-        AmmoInMagazine = ammoInMagazine;
-        MagazineCapacity = magazineCapacity;
-        SpareAmmo = spareAmmo;
-        IsAutomatic = isAutomatic;
-        RateOfFireInSec= rateOfFireSec;
-        ProjectileVelocity= projectileVelocity;
-        ProjectileMass= projectileMass;
-        ReloadTimeSec= reloadTimeSec;
-        GameObjectRef = gameObjectRef;
     }
 
-    public bool MagazineNotEmpty()
+    public bool IsAmmoInMagazine()
     {
-        if (AmmoInMagazine > 0)
-        {
-            return true;
-        }
-        return false;
+        return AmmoInMagazine > 0;
     }
 
     public bool CanReload()
     {
-        if (SpareAmmo > 0)
+        return SpareAmmo > 0 && AmmoInMagazine < MagazineCapacity;
+    }
+
+    public virtual void Fire()
+    {
+        if (isReloading)
+            return;
+
+        if (!canFire)
+            return;
+
+        if (AmmoInMagazine > 0)
         {
-            return true;
+            AmmoInMagazine--;
+
+            // Fire logic here
+            Debug.Log(Name + " fired. Ammo left: " + AmmoInMagazine);
+
+            // Invoke the OnFired event
+            OnFired?.Invoke();
+
+            // Invoke ammo changed event
+            OnAmmoChanged?.Invoke(AmmoInMagazine, SpareAmmo);
+
+            // Start the firing delay coroutine
+            if (FireDelayInSec > 0)
+            {
+                canFire = false;
+                fireDelayCoroutine = StartCoroutine(FireDelayCoroutine());
+            }
         }
-        return false;
+        else
+        {
+            Debug.Log(Name + " is out of ammo. Reload needed.");
+            Reload();
+        }
+    }
+
+    protected virtual IEnumerator FireDelayCoroutine()
+    {
+        yield return new WaitForSeconds(FireDelayInSec);
+        canFire = true;
+        fireDelayCoroutine = null;
+        OnReadyToFire?.Invoke();
+    }
+
+    public virtual void Reload()
+    {
+        if (!isReloading && CanReload())
+        {
+            // Cancel firing delay if reloading starts
+            CancelFireDelay();
+
+            // Invoke the OnReloadStarted event
+            OnReloadStarted?.Invoke();
+
+            // Start the reload coroutine
+            reloadCoroutine = StartCoroutine(ReloadCoroutine());
+        }
+    }
+
+    protected virtual IEnumerator ReloadCoroutine()
+    {
+        isReloading = true;
+
+        // Optional: Trigger reload animation
+        Debug.Log(Name + " is reloading...");
+
+        // Wait for the reload time
+        yield return new WaitForSeconds(ReloadTimeSec);
+
+        // Complete the reload
+        int ammoNeeded = MagazineCapacity - AmmoInMagazine;
+        int ammoToReload = Mathf.Min(SpareAmmo, ammoNeeded);
+        AmmoInMagazine += ammoToReload;
+        SpareAmmo -= ammoToReload;
+        isReloading = false;
+
+        // Invoke the OnReloadFinished event
+        OnReloadFinished?.Invoke();
+
+        // Invoke ammo changed event
+        OnAmmoChanged?.Invoke(AmmoInMagazine, SpareAmmo);
+
+        Debug.Log(Name + " reload complete.");
+    }
+
+    public virtual void CancelReload()
+    {
+        if (isReloading)
+        {
+            // Stop the reload coroutine
+            StopCoroutine(reloadCoroutine);
+            reloadCoroutine = null;
+            isReloading = false;
+            Debug.Log(Name + " reload canceled.");
+
+            // Invoke the OnReloadCanceled event
+            OnReloadCanceled?.Invoke();
+        }
+    }
+
+    public virtual void CancelFireDelay()
+    {
+        if (fireDelayCoroutine != null)
+        {
+            StopCoroutine(fireDelayCoroutine);
+            fireDelayCoroutine = null;
+            canFire = true;
+            Debug.Log(Name + " firing delay canceled.");
+        }
     }
 
     /// <summary>
-    /// After shot has been fired. Handle apropriate action, such as reduce ammo, reload etc.
+    /// Can fire projectile now
     /// </summary>
-    public void HandleShotAfterward()
+    /// <returns></returns>
+    public bool CanFire()
     {
-        AmmoInMagazine--;
-        if (Gun == GUN_NAME.PISTOL)
-        {
-            
-        }
-        else if (Gun == GUN_NAME.SHOTGUN)
-        {
-
-        }
-        else if (Gun == GUN_NAME.SMG)
-        {
-
-        }
+        return canFire && AmmoInMagazine > 0;
     }
 
-    public void Reload()
+    /// <summary>
+    /// If is reloading in process now
+    /// </summary>
+    /// <returns></returns>
+    public bool IsReloading()
     {
-        State._state.Canvas.GetComponent<CanvasManager>().SetReloadingText();
-        //TODO wait
-        int newAmmo = SpareAmmo >= MagazineCapacity ? MagazineCapacity : SpareAmmo;
-        AmmoInMagazine = newAmmo;
-        SpareAmmo -= newAmmo;
+        return isReloading;
+    }
+
+    /// <summary>
+    /// If magazine is empty
+    /// </summary>
+    /// <returns></returns>
+    public bool IsEmptyMagazine()
+    {
+        return AmmoInMagazine == 0;
+    }
+
+    /// <summary>
+    /// If magazine is full return true, else false
+    /// </summary>
+    /// <returns></returns>
+    public bool IsMagazineFull()
+    {
+        return AmmoInMagazine == MagazineCapacity;
     }
 }
 
-public enum GUN_NAME
+public class Pistol : Gun
 {
-    PISTOL = 1,
-    SHOTGUN = 2,
-    SMG = 3,
+    protected override void Awake()
+    {
+        Name = "Pistol";
+        AmmoInMagazine = 12;
+        MagazineCapacity = 12;
+        SpareAmmo = 9999;
+        IsAutomatic = false;
+        ProjectileVelocity = 10;
+        ProjectileMass = 2;
+        ReloadTimeSec = 1.5f;
+        FireDelayInSec = 0.01f;
+    }
+}
+
+public class Shotgun : Gun
+{
+    protected override void Awake()
+    {
+        Name = "Shotgun";
+        AmmoInMagazine = 6;
+        MagazineCapacity = 6;
+        SpareAmmo = 6;
+        IsAutomatic = false;
+        ProjectileVelocity = 10;
+        ProjectileMass = 3;
+        ReloadTimeSec = 7f;
+        FireDelayInSec = 1.5f;
+    }
+}
+
+public class Smg : Gun
+{
+    protected override void Awake()
+    {
+        Name = "Smg";
+        AmmoInMagazine = 30;
+        MagazineCapacity = 30;
+        SpareAmmo = 30;
+        IsAutomatic = true;
+        ProjectileVelocity = 10;
+        ProjectileMass = 3;
+        ReloadTimeSec = 6f;
+        FireDelayInSec = 0.05f;
+    }
 }
