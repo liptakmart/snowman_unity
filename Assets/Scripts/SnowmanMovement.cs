@@ -7,11 +7,16 @@ public class SnowmanMovement : MonoBehaviour
 {
     public float movementSpeed = 2f; // Maximum speed the character can reach
     public GameObject snowmanModel;
+    public GameObject playerCamera;
     private Vector3 movement; // Movement direction
 
     private void Start()
     {
-
+        if (GetComponent<SnowmanCombat>().isNpc)
+        {
+            //npc doesnt need camera
+            playerCamera.SetActive(false);
+        }
     }
     void Update()
     {
