@@ -8,7 +8,7 @@ public class SpawnPoint : MonoBehaviour
     public float gizmoRadius = 1.0f;     // Radius of the Gizmo
 
     // List of objects currently inside the trigger
-    private HashSet<GameObject> objectsInside = new HashSet<GameObject>();
+    private HashSet<int> snowmanIdsInside = new HashSet<int>();
 
     // This method is called by Unity in the editor to draw gizmos in the Scene view
     void OnDrawGizmos()
@@ -27,24 +27,37 @@ public class SpawnPoint : MonoBehaviour
     // Called when another object enters the trigger
     void OnTriggerEnter(Collider other)
     {
-        if (!objectsInside.Contains(other.gameObject))
+        if (other.gameObject.tag == Constants.TAG_SNOWMAN && !snowmanIdsInside.Contains(other.gameObject.GetComponent<SnowmanCombat>().snowmanId))
         {
-            objectsInside.Add(other.gameObject);
+            snowmanIdsInside.Add(other.gameObject.GetComponent<SnowmanCombat>().snowmanId);
         }
     }
 
     // Called when another object exits the trigger
     void OnTriggerExit(Collider other)
     {
-        if (objectsInside.Contains(other.gameObject))
+        if (other.gameObject.tag == Constants.TAG_SNOWMAN && snowmanIdsInside.Contains(other.gameObject.GetComponent<SnowmanCombat>().snowmanId))
         {
-            objectsInside.Remove(other.gameObject);
+            snowmanIdsInside.Remove(other.gameObject.GetComponent<SnowmanCombat>().snowmanId);
         }
     }
 
-    // Optional: Method to check if the spawn point is free
-    public bool IsEmpty()
+    /// <summary>
+    /// Tries to remove snowman id from list of inside. For example if snowman is dead.
+    /// </summary>
+    /// <param name="snowmanId"></param>
+    public void TryRemoveSnowman(int snowmanId)
     {
-        return objectsInside.Count == 0;
+        if (snowmanIdsInside.Contains(snowmanId))
+        {
+            snowmanIdsInside.Remove(snowmanId);
+        }
+        
+    }
+
+    // Optional: Method to check if the spawn point is free
+    public bool NoSnowmanInside()
+    {
+        return snowmanIdsInside.Count == 0;
     }
 }

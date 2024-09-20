@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -16,10 +17,9 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         InitState();
-        GameObject player = SpawnSnowman(false);
-        State._state.PlayersSnowmanRef.Add(player);
-        SpawnSnowman(true);
-        Invoke("InitAfterStart", 0.5f);
+        GameObject[] snowmenArr = SpawnSnowmen(new bool[] { false, true});
+        State._state.PlayersSnowmanRef.Add(snowmenArr[0]);
+        Invoke("InitAfterStart", 0.5f); //TODO necessary?
     }
 
     // Update is called once per frame
@@ -46,6 +46,29 @@ public class GameManager : MonoBehaviour
         State._prefabs.ProjectilePrefabRef = ProjectilePrefabRef;
     }
 
+    public GameObject[] SpawnSnowmen(bool[] isNpcArr)
+    {
+        List<GameObject> snowmenList = new List<GameObject>();
+        Vector3[] spawnPositions = GetSpawnPositions(isNpcArr.Length);
+
+        for (int i = 0; i < spawnPositions.Length; i++)
+        {
+            GameObject snowman = Instantiate(SnowmanPrefabRef, spawnPositions[i], Quaternion.identity);
+            snowmenList.Add(snowman);
+            SnowmanCombat snowmanLogic = snowman.GetComponent<SnowmanCombat>();
+            snowmanLogic.snowmanId = _idSnowmanIdCounter++;
+            if (isNpcArr[i])
+            {
+                snowmanLogic.isNpc = true;
+            }
+            else
+            {
+                snowmanLogic.isNpc = false;
+            }
+        }
+        return snowmenList.ToArray();
+    }
+
     public GameObject SpawnSnowman(bool isNpc)
     {
         GameObject snowman = Instantiate(SnowmanPrefabRef, GetSpawnPosition(), Quaternion.identity);
@@ -59,31 +82,81 @@ public class GameManager : MonoBehaviour
     {
         if (SpawnPoints != null && SpawnPoints.Count > 0)
         {
-            HashSet<int> visitedIdxs = new HashSet<int>();
-            while(visitedIdxs.Count < SpawnPoints.Count)
+            // Create a copy of the spawn points list
+            List<GameObject> shuffledSpawnPoints = new List<GameObject>(SpawnPoints);
+            // Shuffle the list
+            ShuffleList(shuffledSpawnPoints);
+
+            // Iterate over the shuffled list
+            foreach (var spawnPoint in shuffledSpawnPoints)
             {
-                int idx = Random.Range(0, SpawnPoints.Count - 1);
-                var sp = SpawnPoints[idx].GetComponent<SpawnPoint>();
-                if (sp.IsEmpty())
+                var sp = spawnPoint.GetComponent<SpawnPoint>();
+                if (sp.NoSnowmanInside())
                 {
                     return sp.transform.position;
                 }
-                else
+            }
+            // All spawn points are occupied
+            // Handle as needed: wait and retry, throw exception, or return a default position
+            throw new Exception("No empty spawn points available");
+        }
+        throw new UnityException("Spawn points not initialized properly!");
+    }
+
+    private Vector3[] GetSpawnPositions(int numOfPos)
+    {
+        if (SpawnPoints != null && SpawnPoints.Count > 0)
+        {
+            List<Vector3> positions = new List<Vector3>();
+            // Create a copy of the spawn points list
+            List<GameObject> shuffledSpawnPoints = new List<GameObject>(SpawnPoints);
+            // Shuffle the list
+            ShuffleList(shuffledSpawnPoints);
+
+            // Iterate over the shuffled list
+            foreach (var spawnPoint in shuffledSpawnPoints)
+            {
+                var sp = spawnPoint.GetComponent<SpawnPoint>();
+                if (sp.NoSnowmanInside())
                 {
-                    if (visitedIdxs.Contains(idx))
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        visitedIdxs.Add(idx);
-                    }
+                    positions.Add(sp.transform.position);
+                }
+
+                if (positions.Count == numOfPos)
+                {
+                    return positions.ToArray();
                 }
             }
-            //all are filled, return first
-            return SpawnPoints[0].transform.position;
+
+            throw new Exception("No empty spawn points available");
         }
-        throw new UnityException("Spawn points not initialzied properly!");
+        throw new UnityException("Spawn points not initialized properly!");
+    }
+
+    // Helper method to shuffle a list
+    private void ShuffleList<T>(List<T> list)
+    {
+        int n = list.Count;
+        for (int i = n - 1; i > 0; i--)
+        {
+            int j = UnityEngine.Random.Range(0, i + 1);
+            T temp = list[i];
+            list[i] = list[j];
+            list[j] = temp;
+        }
+    }
+
+    /// <summary>
+    /// Removes dead snowman id from spawn points where he entered. Because he is no longer there, cause he is dead.
+    /// </summary>
+    /// <param name="deadSnowmanId"></param>
+    public void RemoveDeadSnowmanIdFromSpawnPoints(int deadSnowmanId)
+    {
+        foreach (GameObject item in SpawnPoints)
+        {
+            SpawnPoint script = item.GetComponent<SpawnPoint>();
+            script.TryRemoveSnowman(deadSnowmanId);
+        }
     }
 }
 
@@ -106,4 +179,9 @@ public class LevelState
     public List<GameObject> SpawnPoints = new List<GameObject>();
     public List<GameObject> PlayersSnowmanRef = new List<GameObject>();
     public GameObject Canvas;
+}
+
+public static class Constants
+{
+    public static readonly string TAG_SNOWMAN = "SnowmanTag";
 }

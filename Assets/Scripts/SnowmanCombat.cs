@@ -89,6 +89,7 @@ public class SnowmanCombat : MonoBehaviour
         {
             UnsubscribeFromGunEvents(selectedGun);
         }
+        isAlive = false;
     }
 
     private void SubscribeToGunEvents(Gun gun)
@@ -317,16 +318,6 @@ public class SnowmanCombat : MonoBehaviour
     /// </summary>
     public void Die()
     {
-        isAlive = false;
-        snowmanId = -1;
-        GameObject snowman = State._state.GameManagerScriptObj.SpawnSnowman(isNpc);
-
-        if (!isNpc)
-        {
-            State._state.PlayersSnowmanRef.Remove(gameObject);
-            State._state.PlayersSnowmanRef.Add(snowman);
-        }
-
         Collider col = GetComponent<Collider>();
         Rigidbody rb = GetComponent<Rigidbody>();
         if (col != null && rb != null)
@@ -334,8 +325,26 @@ public class SnowmanCombat : MonoBehaviour
             Destroy(col);
             Destroy(rb);
         }
+
+        State._state.GameManagerRef.GetComponent<GameManager>().RemoveDeadSnowmanIdFromSpawnPoints(snowmanId);
         State._state.Canvas.GetComponent<CanvasManager>().UpdateWeaponUI();
-        Destroy(gameObject, 10f);
+        isAlive = false;
+        snowmanId = -1;
+        if (!isNpc)
+        {
+            State._state.PlayersSnowmanRef.Remove(gameObject);
+        }
+        Destroy(gameObject);
+        //TODO
+        //snowmanModel.transform.parent = null;
+        //Destroy(snowmanModel, 10f);
+        //Destroy(gameObject);
+
+        GameObject snowman = State._state.GameManagerScriptObj.SpawnSnowman(isNpc);
+        if (!isNpc)
+        {
+            State._state.PlayersSnowmanRef.Add(snowman);
+        }
     }
 
     /// <summary>
@@ -713,7 +722,7 @@ public class Smg : Gun
     protected override void Awake()
     {
         Name = "Smg";
-        AmmoInMagazine = 30;
+        AmmoInMagazine = 30000;
         MagazineCapacity = 30;
         SpareAmmo = 30;
         IsAutomatic = true;
