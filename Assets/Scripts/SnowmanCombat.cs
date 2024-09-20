@@ -9,6 +9,7 @@ public class SnowmanCombat : MonoBehaviour
     public int snowmanId;
     public bool isAlive;
     public bool isNpc;
+    public Color cylinderColor;
 
     public GameObject snowmanModel;
 
@@ -38,6 +39,11 @@ public class SnowmanCombat : MonoBehaviour
     {
         isAlive = true;
         audioSource = GetComponent<AudioSource>();
+        GameObject cylinderGo = snowmanModel.transform.Find("Cylinder").gameObject;
+        Renderer renderer = cylinderGo.GetComponent<Renderer>();
+        Material newMaterial = new Material(renderer.material);
+        newMaterial.color = cylinderColor;
+        renderer.material = newMaterial;
 
         ownedGuns = new List<Gun>();
 
@@ -340,7 +346,7 @@ public class SnowmanCombat : MonoBehaviour
         //Destroy(snowmanModel, 10f);
         //Destroy(gameObject);
 
-        GameObject snowman = State._state.GameManagerScriptObj.SpawnSnowman(isNpc);
+        GameObject snowman = State._state.GameManagerScriptObj.SpawnSnowman(isNpc, cylinderColor);
         if (!isNpc)
         {
             State._state.PlayersSnowmanRef.Add(snowman);

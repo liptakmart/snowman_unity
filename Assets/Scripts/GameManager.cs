@@ -17,7 +17,7 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         InitState();
-        GameObject[] snowmenArr = SpawnSnowmen(new bool[] { false, true});
+        GameObject[] snowmenArr = SpawnSnowmen(new bool[] { false, true}, new Color[] { Color.blue, Color.red});
         State._state.PlayersSnowmanRef.Add(snowmenArr[0]);
         Invoke("InitAfterStart", 0.5f); //TODO necessary?
     }
@@ -46,7 +46,7 @@ public class GameManager : MonoBehaviour
         State._prefabs.ProjectilePrefabRef = ProjectilePrefabRef;
     }
 
-    public GameObject[] SpawnSnowmen(bool[] isNpcArr)
+    public GameObject[] SpawnSnowmen(bool[] isNpcArr, Color[] cylinderColorArr)
     {
         List<GameObject> snowmenList = new List<GameObject>();
         Vector3[] spawnPositions = GetSpawnPositions(isNpcArr.Length);
@@ -56,6 +56,7 @@ public class GameManager : MonoBehaviour
             GameObject snowman = Instantiate(SnowmanPrefabRef, spawnPositions[i], Quaternion.identity);
             snowmenList.Add(snowman);
             SnowmanCombat snowmanLogic = snowman.GetComponent<SnowmanCombat>();
+            snowmanLogic.cylinderColor = cylinderColorArr[i];
             snowmanLogic.snowmanId = _idSnowmanIdCounter++;
             if (isNpcArr[i])
             {
@@ -69,11 +70,12 @@ public class GameManager : MonoBehaviour
         return snowmenList.ToArray();
     }
 
-    public GameObject SpawnSnowman(bool isNpc)
+    public GameObject SpawnSnowman(bool isNpc, Color cylinderColor)
     {
         GameObject snowman = Instantiate(SnowmanPrefabRef, GetSpawnPosition(), Quaternion.identity);
         var newSnowman = snowman.GetComponent<SnowmanCombat>();
         newSnowman.snowmanId = _idSnowmanIdCounter++;
+        newSnowman.cylinderColor = cylinderColor;
         newSnowman.isNpc = isNpc;
         return snowman;
     }
