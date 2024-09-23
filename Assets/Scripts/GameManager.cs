@@ -18,13 +18,15 @@ public class GameManager : MonoBehaviour
     {
         InitState();
         GameObject[] snowmenArr = SpawnSnowmen(
-            new int? [] { null, null },
-            new bool[] { false, true },
-            new int[] { 0, 1 },
-            new GUN_TYPE[] { GUN_TYPE.PISTOL, GUN_TYPE.PISTOL },
+            new int? [] { null, null, null, null },
+            new bool[] { false, true, true, true },
+            new int[] { 0, 1, 1, 1 },
+            new GUN_TYPE[] { GUN_TYPE.PISTOL, GUN_TYPE.PISTOL, GUN_TYPE.PISTOL, GUN_TYPE.PISTOL },
             new List<GUN_TYPE[]>()
             {
                 new GUN_TYPE[] { GUN_TYPE.PISTOL, GUN_TYPE.SHOTGUN, GUN_TYPE.SMG},
+                new GUN_TYPE[] { GUN_TYPE.PISTOL},
+                new GUN_TYPE[] { GUN_TYPE.PISTOL},
                 new GUN_TYPE[] { GUN_TYPE.PISTOL},
             });
             
@@ -193,6 +195,16 @@ public static class Constants
     public static readonly string TAG_NPC = "NpcTag";
     public static readonly Color TEAM_01_COLOR = Color.red;
     public static readonly Color TEAM_02_COLOR = Color.blue;
+}
+
+/// <summary>
+/// Movement state of npc
+/// </summary>
+public enum NPC_MOVEMENT_STATE
+{
+    IDLE = 1,
+    PATROL = 2,
+    ENGAGE = 3
 }
 
 public enum GUN_TYPE
@@ -435,7 +447,7 @@ public class Pistol : Gun
         MagazineCapacity = 12;
         SpareAmmo = 48;
         IsAutomatic = false;
-        ProjectileVelocity = 10;
+        ProjectileVelocity = 20;
         ProjectileMass = 2;
         ReloadTimeSec = 1.5f;
         FireDelayInSec = 0.01f;
@@ -452,7 +464,7 @@ public class Shotgun : Gun
         MagazineCapacity = 6;
         SpareAmmo = 6;
         IsAutomatic = false;
-        ProjectileVelocity = 10;
+        ProjectileVelocity = 20;
         ProjectileMass = 3;
         ReloadTimeSec = 7f;
         FireDelayInSec = 1.5f;
@@ -469,7 +481,7 @@ public class Smg : Gun
         MagazineCapacity = 30;
         SpareAmmo = 30;
         IsAutomatic = true;
-        ProjectileVelocity = 10;
+        ProjectileVelocity = 20;
         ProjectileMass = 3;
         ReloadTimeSec = 6f;
         FireDelayInSec = 0.05f;

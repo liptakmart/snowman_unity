@@ -1,15 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.AI;
 
 public class NpcBehaviour : MonoBehaviour
 {
-    /// <summary>
-    /// patrol points ref for npc
-    /// </summary>
-    public List<Vector3> PatrolPoints;
-
     private NavMeshAgent agent;
     private AudioSource audioSource;
     private SnowmanState snowmanState;
@@ -18,7 +14,9 @@ public class NpcBehaviour : MonoBehaviour
     private List<Gun> ownedGuns;
     private GameObject snowmanModel;
     private GameManager manager;
-
+    private int currentPatrolIndex;
+    private NPC_MOVEMENT_STATE npcBehaviorState;
+    private List<Vector3> patrolPoints;
 
     // Start is called before the first frame update
     void Start()
@@ -31,13 +29,58 @@ public class NpcBehaviour : MonoBehaviour
         levelState = State._state;
         snowmanModel = snowmanState.snowmanModel;
         manager = levelState.GameManagerScriptObj;
+        currentPatrolIndex = 0;
+        npcBehaviorState = NPC_MOVEMENT_STATE.PATROL;
+        patrolPoints = levelState.PatrolPoints.Select(i => i.transform.position).ToList();
+
+        agent.speed = 4f;
         //agent.SetDestination()
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        switch (npcBehaviorState)
+        {
+            //case State.Idle:
+            //    HandleIdleState();
+            //    break;
+            case NPC_MOVEMENT_STATE.PATROL:
+                HandlePatrolState();
+                break;
+            //case State.Chase:
+            //    HandleChaseState();
+            //    break;
+            //case State.Attack:
+            //    HandleAttackState();
+            //    break;
+        }
+    }
+
+    private void HandlePatrolState()
+    {
+        if (!agent.pathPending && agent.remainingDistance < 0.5f)
+        {
+            // Move to next patrol point
+            currentPatrolIndex = (currentPatrolIndex + 1) % patrolPoints.Count;
+            SetDestination();
+        }
+
+        //TODO if see player, than engage
+        // Check for player
+        //if (IsPlayerInRange(detectionRadius))
+        //{
+        //    npcBehaviorState = NPC_MOVEMENT_STATE.ENGAGE;
+        //    //agent.speed = 5f; // Increase speed for chasing
+        //}
+    }
+
+    private void SetDestination()
+    {
+        if (patrolPoints.Count == 0)
+            return;
+
+        agent.SetDestination(patrolPoints[currentPatrolIndex]);
     }
 
     public void Die()
