@@ -12,7 +12,7 @@ public class SnowmanMovement : MonoBehaviour
 
     private void Start()
     {
-        if (GetComponent<SnowmanCombat>().isNpc)
+        if (GetComponent<SnowmanState>().IsNpc)
         {
             //npc doesnt need camera
             playerCamera.SetActive(false);
@@ -26,7 +26,8 @@ public class SnowmanMovement : MonoBehaviour
 
     void MoveCharacter()
     {
-        if (gameObject.GetComponent<SnowmanCombat>().isAlive && !gameObject.GetComponent<SnowmanCombat>().isNpc)
+        var snowmanState = gameObject.GetComponent<SnowmanState>();
+        if (snowmanState.IsAlive && !snowmanState.IsNpc)
         {
             // Get input for horizontal (A/D or Left/Right) and vertical (W/S or Up/Down) axes
             float moveHorizontal = Input.GetAxis("Horizontal");

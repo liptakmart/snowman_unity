@@ -25,8 +25,9 @@ public class CanvasManager : MonoBehaviour
         TextMeshProUGUI ammoTextComponent = ammoText.GetComponent<TextMeshProUGUI>();
 
         // Set the text
-        SnowmanCombat sc = State._state.PlayersSnowmanRef[0].GetComponent<SnowmanCombat>();
-        Gun gun = sc.selectedGun;
+        //TODO rework, it will only work if first spawned is player, not npc
+        SnowmanState sc = State._state.PlayersSnowmanRef[0].GetComponent<SnowmanState>();
+        Gun gun = sc.SelectedGun;
         ammoTextComponent.text = $"{gun.Name} {gun.AmmoInMagazine}/{gun.SpareAmmo}";
     }
 

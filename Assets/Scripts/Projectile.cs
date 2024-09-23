@@ -44,11 +44,17 @@ public class Projectile : MonoBehaviour
         rb.useGravity = true;
         //Debug.Log("Collision: " + collision.collider.gameObject.name);
 
+        if (collision.gameObject.tag != Constants.TAG_PLAYER && collision.gameObject.tag != Constants.TAG_NPC)
+        {
+            IsLethal = false;
+            return;
+        }
+
         //get parent
-        var hitSnowman = collision.gameObject.GetComponent<SnowmanCombat>();
+        var snowmanState = collision.gameObject.GetComponent<SnowmanState>();
         //notify snowman and disable projectile
-        if (hitSnowman != null && IsLethal && hitSnowman.isAlive && FiredBySnowmanId != hitSnowman.snowmanId)
-        
+        if (snowmanState != null && IsLethal && snowmanState.IsAlive && FiredBySnowmanId != snowmanState.SnowmanId)
+        {
             if (collision.collider.gameObject.name == "Cylinder")
             {
                 var cylinderGo = collision.collider.gameObject;
@@ -59,8 +65,7 @@ public class Projectile : MonoBehaviour
             else
             {
                 //disperse enemy corpse
-                var modelParent = hitSnowman.transform.Find("SnowmanModel");
-
+                var modelParent = snowmanState.snowmanModel;
                 var cylinderGo = modelParent.transform.Find("Cylinder").gameObject;
                 var legsGo = modelParent.transform.Find("Legs").gameObject;
                 var bodyGo = modelParent.transform.Find("Body").gameObject;
@@ -85,8 +90,18 @@ public class Projectile : MonoBehaviour
                 Destroy(headGo, 10f);
                 Destroy(gunsGo, 0f);
 
-                hitSnowman.Die();
+                if (snowmanState.IsNpc)
+                {
+                    var npcBehaviour = collision.gameObject.GetComponent<NpcBehaviour>();
+                    npcBehaviour.Die();
+                }
+                else
+                {
+                    var snowmanCombat = collision.gameObject.GetComponent<Combat>();
+                    snowmanCombat.Die();
+                }
             }
+        }
         IsLethal = false;
     }
 }

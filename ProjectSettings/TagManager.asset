@@ -4,7 +4,8 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - SnowmanTag
+  - NpcTag
+  - PlayerTag
   layers:
   - Default
   - TransparentFX

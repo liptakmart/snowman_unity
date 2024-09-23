@@ -24,21 +24,30 @@ public class SpawnPoint : MonoBehaviour
         Gizmos.DrawSphere(transform.position, gizmoRadius);
     }
 
+    private bool IsSnowman(string tag)
+    {
+        if (tag == Constants.TAG_PLAYER || tag == Constants.TAG_NPC)
+        {
+            return true;
+        }
+        return false;
+    }
+
     // Called when another object enters the trigger
     void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.tag == Constants.TAG_SNOWMAN && !snowmanIdsInside.Contains(other.gameObject.GetComponent<SnowmanCombat>().snowmanId))
+        if (IsSnowman(other.gameObject.tag) && !snowmanIdsInside.Contains(other.gameObject.GetComponent<SnowmanState>().SnowmanId))
         {
-            snowmanIdsInside.Add(other.gameObject.GetComponent<SnowmanCombat>().snowmanId);
+            snowmanIdsInside.Add(other.gameObject.GetComponent<SnowmanState>().SnowmanId);
         }
     }
 
     // Called when another object exits the trigger
     void OnTriggerExit(Collider other)
     {
-        if (other.gameObject.tag == Constants.TAG_SNOWMAN && snowmanIdsInside.Contains(other.gameObject.GetComponent<SnowmanCombat>().snowmanId))
+        if (IsSnowman(other.gameObject.tag) && snowmanIdsInside.Contains(other.gameObject.GetComponent<SnowmanState>().SnowmanId))
         {
-            snowmanIdsInside.Remove(other.gameObject.GetComponent<SnowmanCombat>().snowmanId);
+            snowmanIdsInside.Remove(other.gameObject.GetComponent<SnowmanState>().SnowmanId);
         }
     }
 
