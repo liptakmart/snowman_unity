@@ -198,19 +198,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29bc59635a860614a817297d62fbf487, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  PatrolPoints:
-  - {x: 0, y: 0, z: 0}
-  - {x: 0, y: 0, z: 0}
-  - {x: 0, y: 0, z: 0}
-  - {x: 0, y: 0, z: 0}
-  - {x: 0, y: 0, z: 0}
-  - {x: 0, y: 0, z: 0}
-  - {x: 0, y: 0, z: 0}
-  - {x: 0, y: 0, z: 0}
-  - {x: 0, y: 0, z: 0}
-  - {x: 0, y: 0, z: 0}
-  detectionRadius: 20
-  attackRadius: 10
+  visionRange: 5
+  fieldOfView: 120
+  targetMask:
+    serializedVersion: 2
+    m_Bits: 64
+  obstructionMask:
+    serializedVersion: 2
+    m_Bits: 256
+  visionCheckInterval: 0.2
 --- !u!114 &8339100880509202342
 MonoBehaviour:
   m_ObjectHideFlags: 0

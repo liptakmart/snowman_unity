@@ -18,16 +18,16 @@ public class GameManager : MonoBehaviour
     {
         InitState();
         GameObject[] snowmenArr = SpawnSnowmen(
-            new int? [] { null, null, null, null },
-            new bool[] { false, true, true, true },
-            new int[] { 0, 1, 1, 1 },
-            new GUN_TYPE[] { GUN_TYPE.PISTOL, GUN_TYPE.PISTOL, GUN_TYPE.PISTOL, GUN_TYPE.PISTOL },
+            new int? [] { null, null/*, null, null*/ },
+            new bool[] { false, true, /*true, true*/ },
+            new int[] { 0, 1, /*1, 1 */},
+            new GUN_TYPE[] { GUN_TYPE.PISTOL, GUN_TYPE.PISTOL/*, GUN_TYPE.PISTOL, GUN_TYPE.PISTOL*/ },
             new List<GUN_TYPE[]>()
             {
                 new GUN_TYPE[] { GUN_TYPE.PISTOL, GUN_TYPE.SHOTGUN, GUN_TYPE.SMG},
                 new GUN_TYPE[] { GUN_TYPE.PISTOL},
-                new GUN_TYPE[] { GUN_TYPE.PISTOL},
-                new GUN_TYPE[] { GUN_TYPE.PISTOL},
+                //new GUN_TYPE[] { GUN_TYPE.PISTOL},
+                //new GUN_TYPE[] { GUN_TYPE.PISTOL},
             });
             
         State._state.PlayersSnowmanRef.Add(snowmenArr[0]);
