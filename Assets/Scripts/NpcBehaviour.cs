@@ -6,6 +6,7 @@ using UnityEngine.AI;
 
 public class NpcBehaviour : MonoBehaviour
 {
+    // Components and references
     private NavMeshAgent agent;
     private AudioSource audioSource;
     private SnowmanState snowmanState;
@@ -21,7 +22,7 @@ public class NpcBehaviour : MonoBehaviour
     // Vision Parameters
     [Header("Vision Parameters")]
     [Tooltip("The maximum distance the NPC can see.")]
-    public float visionRange = 5f;
+    public float visionRange = 50f;
 
     [Tooltip("The angle (in degrees) that defines the NPC's field of view.")]
     [Range(0, 360)]
@@ -36,12 +37,36 @@ public class NpcBehaviour : MonoBehaviour
     [Tooltip("Time interval between vision checks in seconds.")]
     public float visionCheckInterval = 0.2f;
 
-    // Detected target
+    // Memory Parameters
+    [Header("Memory Parameters")]
+    [Tooltip("Duration (in seconds) the NPC will remember the player after losing sight.")]
+    public float memoryDuration = 5f;
+
+    // Movement Parameters
+    [Header("Movement Parameters")]
+    [Tooltip("The minimum distance the NPC maintains from the player's last known position.")]
+    public float minDistanceToPlayer = 2f;
+
+    // Rotation Parameters
+    [Header("Rotation Parameters")]
+    [Tooltip("Rotation speed when turning towards the player.")]
+    public float rotationSpeed = 5f;
+
+    // Search Parameters
+    [Header("Search Parameters")]
+    [Tooltip("Rotation speed when searching for the player.")]
+    public float searchTurnSpeed = 60f;
+
+    // Timers and state tracking
+    private float timeSinceLastSeen = 0f;
     private Transform visibleTarget;
+    private Vector3 lastKnownPosition;
+    private Coroutine visionCoroutine;
 
     // Start is called before the first frame update
     void Start()
     {
+        // Initialize components and variables
         agent = GetComponent<NavMeshAgent>();
         audioSource = GetComponent<AudioSource>();
         snowmanState = GetComponent<SnowmanState>();
@@ -54,8 +79,11 @@ public class NpcBehaviour : MonoBehaviour
         npcBehaviorState = NPC_MOVEMENT_STATE.PATROL;
         patrolPoints = levelState.PatrolPoints.Select(i => i.transform.position).ToList();
 
-        agent.speed = 2f;
-        StartCoroutine(VisionRoutine());
+        agent.speed = 1f;
+        SetDestination();
+
+        // Start vision checking coroutine
+        visionCoroutine = StartCoroutine(VisionRoutine());
     }
 
     // Update is called once per frame
@@ -63,87 +91,149 @@ public class NpcBehaviour : MonoBehaviour
     {
         switch (npcBehaviorState)
         {
-            //case State.Idle:
-            //    HandleIdleState();
-            //    break;
             case NPC_MOVEMENT_STATE.PATROL:
                 HandlePatrolState();
                 break;
-            case NPC_MOVEMENT_STATE.ENGAGE:
-                HandleEngageState();
+            case NPC_MOVEMENT_STATE.FOLLOW:
+                HandleFollowState();
                 break;
-            //case State.Chase:
-            //    HandleChaseState();
-            //    break;
-            //case State.Attack:
-            //    HandleAttackState();
-            //    break;
+            case NPC_MOVEMENT_STATE.ATTACK:
+                HandleAttackState();
+                break;
         }
     }
 
+    // Coroutine for periodic vision checks
     IEnumerator VisionRoutine()
     {
         while (true)
         {
-            FindVisibleTarget();
+            bool targetVisible = FindVisibleTarget();
+
+            if (targetVisible)
+            {
+                // Reset timer when target is visible
+                timeSinceLastSeen = 0f;
+            }
+            else
+            {
+                if (npcBehaviorState == NPC_MOVEMENT_STATE.ATTACK)
+                {
+                    // Lost sight of the player, switch to FOLLOW state
+                    npcBehaviorState = NPC_MOVEMENT_STATE.FOLLOW;
+                    agent.isStopped = false;
+                    agent.speed = 1.8f;
+                    agent.SetDestination(lastKnownPosition);
+                    Debug.Log($"{gameObject.name} lost sight, switching to FOLLOW state.");
+                }
+                else if (npcBehaviorState == NPC_MOVEMENT_STATE.FOLLOW)
+                {
+                    // Increment the timer in FOLLOW state
+                    timeSinceLastSeen += visionCheckInterval;
+
+                    if (timeSinceLastSeen >= memoryDuration)
+                    {
+                        // Time expired, switch back to PATROL
+                        npcBehaviorState = NPC_MOVEMENT_STATE.PATROL;
+                        agent.isStopped = false;
+                        agent.speed = 1f; // Adjust patrol speed as needed
+                        SetDestination();
+                        Debug.Log($"{gameObject.name} lost the target and is returning to PATROL.");
+                    }
+                }
+            }
+
             yield return new WaitForSeconds(visionCheckInterval);
         }
     }
 
-    private void FindVisibleTarget()
+    // Method to find visible targets
+    private bool FindVisibleTarget()
     {
         // Reset the current visible target
         visibleTarget = null;
+        bool targetDetected = false;
+
+        // Determine if we should check FOV
+        bool checkFOV = true;
+
+        // If in FOLLOW state, expand FOV
+        if (npcBehaviorState == NPC_MOVEMENT_STATE.FOLLOW)
+        {
+            checkFOV = false; // Don't limit by FOV when searching
+        }
 
         // Step 1: Find all potential targets within vision range
         Collider[] targetsInRange = Physics.OverlapSphere(transform.position, visionRange, targetMask);
 
+        Transform closestTarget = null;
+        float shortestDistance = Mathf.Infinity;
+
         foreach (Collider targetCollider in targetsInRange)
         {
-            if (targetCollider.gameObject.tag == Constants.TAG_PLAYER)
+            if (targetCollider.gameObject.CompareTag(Constants.TAG_PLAYER))
             {
                 Transform target = targetCollider.transform;
 
                 // Step 2: Calculate direction to target
                 Vector3 directionToTarget = (target.position - transform.position).normalized;
 
+                bool inFieldOfView = true;
                 // Step 3: Check if target is within field of view
-                if (Vector3.Angle(transform.forward, directionToTarget) < fieldOfView / 2)
+                if (checkFOV)
+                {
+                    if (Vector3.Angle(transform.forward, directionToTarget) > fieldOfView / 2)
+                    {
+                        inFieldOfView = false;
+                    }
+                }
+
+                if (inFieldOfView)
                 {
                     float distanceToTarget = Vector3.Distance(transform.position, target.position);
+
+                    // Optional: Visualize the raycast in the Scene view
+                    Debug.DrawRay(transform.position, directionToTarget * distanceToTarget, Color.blue);
 
                     // Step 4: Check for line of sight using raycast
                     if (!Physics.Raycast(transform.position, directionToTarget, distanceToTarget, obstructionMask))
                     {
-                        // Target is visible
-                        visibleTarget = target;
-                        EngageTarget();
-                        return; // Engage the first visible target found
+                        // Target is visible; prioritize the closest one
+                        if (distanceToTarget < shortestDistance)
+                        {
+                            shortestDistance = distanceToTarget;
+                            closestTarget = target;
+                        }
                     }
                 }
             }
         }
 
-        // No target is visible, resume patrol if not already in patrol state
-        if (npcBehaviorState != NPC_MOVEMENT_STATE.PATROL)
+        if (closestTarget != null)
         {
-            npcBehaviorState = NPC_MOVEMENT_STATE.PATROL;
-            agent.speed = 2.5f;
-            SetDestination();
+            visibleTarget = closestTarget;
+            lastKnownPosition = visibleTarget.position;
+            EngageTarget();
+            targetDetected = true;
+            Debug.Log($"{gameObject.name} detected and is engaging {visibleTarget.name}");
         }
+
+        return targetDetected;
     }
 
+    // Method to handle engagement when a target is detected
     private void EngageTarget()
     {
         if (visibleTarget != null)
         {
-            npcBehaviorState = NPC_MOVEMENT_STATE.ENGAGE;
-            agent.speed = 5f; // Increase speed for chasing
-            agent.SetDestination(visibleTarget.position);
-            Debug.Log("Engaging");
+            npcBehaviorState = NPC_MOVEMENT_STATE.ATTACK;
+            agent.isStopped = true; // Stop moving
+            agent.ResetPath();
+            Debug.Log($"{gameObject.name} is now in ATTACK state.");
         }
     }
 
+    // Handle behavior in PATROL state
     private void HandlePatrolState()
     {
         if (!agent.pathPending && agent.remainingDistance < 0.5f)
@@ -152,38 +242,102 @@ public class NpcBehaviour : MonoBehaviour
             currentPatrolIndex = (currentPatrolIndex + 1) % patrolPoints.Count;
             SetDestination();
         }
-
-        //TODO if see player, than engage
-        // Check for player
-        //if (IsPlayerInRange(detectionRadius))
-        //{
-        //    npcBehaviorState = NPC_MOVEMENT_STATE.ENGAGE;
-        //    //agent.speed = 5f; // Increase speed for chasing
-        //}
     }
 
-    private void HandleEngageState()
+    // Handle behavior in FOLLOW state
+    private void HandleFollowState()
     {
         if (visibleTarget != null)
         {
-            // Update the destination to the target's current position
-            agent.SetDestination(visibleTarget.position);
+            // Regained sight of the player, switch back to ATTACK state
+            npcBehaviorState = NPC_MOVEMENT_STATE.ATTACK;
+            agent.isStopped = true;
+            agent.ResetPath();
+            Debug.Log($"{gameObject.name} regained sight, switching to ATTACK state.");
         }
         else
         {
-            // If the target is no longer visible, switch back to patrol
-            npcBehaviorState = NPC_MOVEMENT_STATE.PATROL;
-            agent.speed = 4f;
-            SetDestination();
+            // Move towards last known position
+            float distanceToLastKnown = Vector3.Distance(transform.position, lastKnownPosition);
+
+            if (distanceToLastKnown > minDistanceToPlayer)
+            {
+                agent.isStopped = false;
+                agent.SetDestination(lastKnownPosition);
+                Debug.Log($"{gameObject.name} is following to last known position.");
+            }
+            else
+            {
+                // Reached close enough to last known position, stop and look around
+                agent.isStopped = true;
+                agent.ResetPath();
+
+                // Rotate to look around
+                SearchForTarget();
+
+                Debug.Log($"{gameObject.name} reached last known position and is searching.");
+            }
         }
     }
 
+    // Handle behavior in ATTACK state
+    private void HandleAttackState()
+    {
+        if (visibleTarget != null)
+        {
+            // Ensure the agent is stopped
+            agent.isStopped = true;
+            agent.ResetPath();
 
+            // Rotate to face the player
+            RotateTowards(visibleTarget.position);
+
+            // Perform attack logic here
+            PerformAttack();
+        }
+        else
+        {
+            // Lost sight of the player, switch to FOLLOW state
+            npcBehaviorState = NPC_MOVEMENT_STATE.FOLLOW;
+            agent.isStopped = false;
+            agent.speed = 1.8f; // Set follow speed
+            agent.SetDestination(lastKnownPosition);
+            Debug.Log($"{gameObject.name} lost sight, switching to FOLLOW state.");
+        }
+    }
+
+    // Rotate towards a given position
+    private void RotateTowards(Vector3 targetPosition)
+    {
+        Vector3 direction = (targetPosition - transform.position).normalized;
+        if (direction != Vector3.zero)
+        {
+            Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
+            transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * rotationSpeed);
+        }
+    }
+
+    // Method to rotate when searching
+    private void SearchForTarget()
+    {
+        // Rotate slowly to look around
+        transform.Rotate(0, searchTurnSpeed * Time.deltaTime, 0);
+    }
+
+    // Placeholder for attack logic
+    private void PerformAttack()
+    {
+        Debug.Log("Shoot");
+        // Implement your attack logic here (e.g., shooting)
+    }
+
+    // Method to set destination for patrol
     private void SetDestination()
     {
         if (patrolPoints.Count == 0)
             return;
 
+        agent.isStopped = false;
         agent.SetDestination(patrolPoints[currentPatrolIndex]);
     }
 
@@ -212,6 +366,7 @@ public class NpcBehaviour : MonoBehaviour
         levelState.NpcSnowmanRef.Add(snowman);
     }
 
+    // Gizmos for visualization
     void OnDrawGizmos()
     {
         // Draw the vision range sphere
@@ -232,6 +387,15 @@ public class NpcBehaviour : MonoBehaviour
         {
             Gizmos.color = Color.red;
             Gizmos.DrawLine(transform.position, visibleTarget.position);
+        }
+    }
+
+    // Stop the vision coroutine when disabled
+    void OnDisable()
+    {
+        if (visionCoroutine != null)
+        {
+            StopCoroutine(visionCoroutine);
         }
     }
 }

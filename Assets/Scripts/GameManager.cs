@@ -204,7 +204,8 @@ public enum NPC_MOVEMENT_STATE
 {
     IDLE = 1,
     PATROL = 2,
-    ENGAGE = 3
+    FOLLOW = 3,
+    ATTACK = 4,
 }
 
 public enum GUN_TYPE

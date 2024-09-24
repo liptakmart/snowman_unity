@@ -174,7 +174,7 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 0.5
-  m_Speed: 2
+  m_Speed: 1
   m_Acceleration: 6
   avoidancePriority: 50
   m_AngularSpeed: 100
@@ -198,7 +198,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29bc59635a860614a817297d62fbf487, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  visionRange: 5
+  visionRange: 50
   fieldOfView: 120
   targetMask:
     serializedVersion: 2
@@ -207,6 +207,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   visionCheckInterval: 0.2
+  memoryDuration: 5
 --- !u!114 &8339100880509202342
 MonoBehaviour:
   m_ObjectHideFlags: 0
