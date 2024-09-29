@@ -1,6 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
+using UnityEditor;
+using Unity.VisualScripting;
 
 public class Combat : MonoBehaviour
 {
@@ -222,53 +225,114 @@ public class Combat : MonoBehaviour
 
     private void FirePistolProjectile(Vector3 projectilePos, Quaternion projectileRot)
     {
-        var projectile = Instantiate(State._prefabs.ProjectilePrefabRef, projectilePos, projectileRot);
+        GameObject projectilePrefab = State._prefabs.ProjectilePrefabRef;
+        projectilePrefab.transform.localScale = new Vector3(selectedGun.ProjectileSize, selectedGun.ProjectileSize, selectedGun.ProjectileSize);
+
+        var projectile = Instantiate(projectilePrefab, projectilePos, projectileRot);
         projectile.GetComponent<Projectile>().FiredBySnowmanId = snowmanState.SnowmanId;
+
         var rb = projectile.GetComponent<Rigidbody>();
-        if (rb != null)
-        {
-            // Apply velocity in the new forward direction of the spawned projectile
-            rb.velocity = projectile.transform.forward * -1 * selectedGun.ProjectileVelocity;
-        }
+
+        Vector3 direction = projectile.transform.forward * -1;
+        float yDispersion = selectedGun.YBaseDispersion + (selectedGun.DynamicDispersion * 3f);
+        float zDispersion = selectedGun.ZBaseDispersion + (selectedGun.DynamicDispersion * 3f);
+        rb.velocity = ApplyDispersion(direction, yDispersion, zDispersion) * selectedGun.ProjectileVelocity;
+
+        var script = projectile.GetComponent<Projectile>();
+        script.MaxRange = selectedGun.MaxRange;
+        script.OriginPoint = transform.position;
     }
 
     private void FireShotgunProjectile(Vector3 projectilePos, Quaternion projectileRot)
     {
-        GameObject[] projectiles = new GameObject[7];
-        float[] angleOffsets = new float[] { -4.5f, -3f, -1.5f, 0f, 1.5f, 3f, 4.5f };
-
-        for (int i = 0; i < 7; i++)
+        List<float> widthAngleOffsets = new List<float>();
+        float yLowerBound = -6.0f;
+        float yStep = 0.50f;
+        for (float i = yLowerBound; i <= yLowerBound * -1; i+=yStep)
         {
-            // Instantiate the projectile
-            projectiles[i] = Instantiate(State._prefabs.ProjectilePrefabRef, projectilePos, projectileRot);
-            projectiles[i].GetComponent<Projectile>().FiredBySnowmanId = snowmanState.SnowmanId;
+            widthAngleOffsets.Add(i);
+        }
 
-            var rb = projectiles[i].GetComponent<Rigidbody>();
-            if (rb != null)
+        List<float> heightAnglesOffsets = new List<float>();
+        float xLowerBound = -6f;
+        float xStep = 2f;
+        for (float i = xLowerBound; i <= xLowerBound * -1; i += xStep)
+        {
+            heightAnglesOffsets.Add(i);
+        }
+
+        for (int i = 0; i < heightAnglesOffsets.Count; i++)
+        {
+            for (int j = 0; j < widthAngleOffsets.Count; j++)
             {
+                GameObject projectilePrefab = State._prefabs.ProjectilePrefabRef;
+                projectilePrefab.transform.localScale = new Vector3(selectedGun.ProjectileSize, selectedGun.ProjectileSize, selectedGun.ProjectileSize);
+
+                // Instantiate the projectile
+                var projectile = Instantiate(projectilePrefab, projectilePos, projectileRot);
+                projectile.GetComponent<Projectile>().FiredBySnowmanId = snowmanState.SnowmanId;
+
+                var rb = projectile.GetComponent<Rigidbody>();
                 // Original forward direction (negative due to your setup)
-                Vector3 forward = projectiles[i].transform.forward * -1;
+                Vector3 forward = projectile.transform.forward * -1;
 
                 // Rotate the forward vector by the angle offset around the Y-axis
-                Quaternion rotation = Quaternion.Euler(0, angleOffsets[i], 0);
+                Quaternion rotation = Quaternion.Euler(heightAnglesOffsets[i], widthAngleOffsets[j], 0);
                 Vector3 adjustedDirection = rotation * forward;
 
+                float yDispersion = selectedGun.YBaseDispersion + (selectedGun.DynamicDispersion * 3f);
+                float zDispersion = selectedGun.ZBaseDispersion + (selectedGun.DynamicDispersion * 3f);
+
                 // Apply the adjusted velocity
-                rb.velocity = adjustedDirection.normalized * selectedGun.ProjectileVelocity;
+                rb.velocity = ApplyDispersion(adjustedDirection.normalized, yDispersion, zDispersion) * selectedGun.ProjectileVelocity;
+
+                var script = projectile.GetComponent<Projectile>();
+                script.MaxRange = selectedGun.MaxRange;
+                script.OriginPoint = transform.position;
             }
         }
     }
 
     private void FireSmgProjectile(Vector3 projectilePos, Quaternion projectileRot)
     {
-        var projectile = Instantiate(State._prefabs.ProjectilePrefabRef, projectilePos, projectileRot);
+        GameObject projectilePrefab = State._prefabs.ProjectilePrefabRef;
+        projectilePrefab.transform.localScale = new Vector3(selectedGun.ProjectileSize, selectedGun.ProjectileSize, selectedGun.ProjectileSize);
+
+        var projectile = Instantiate(projectilePrefab, projectilePos, projectileRot);
         projectile.GetComponent<Projectile>().FiredBySnowmanId = snowmanState.SnowmanId;
         var rb = projectile.GetComponent<Rigidbody>();
-        if (rb != null)
-        {
-            // Apply velocity in the new forward direction of the spawned projectile
-            rb.velocity = projectile.transform.forward * -1 * selectedGun.ProjectileVelocity;
-        }
+
+        Vector3 direction = projectile.transform.forward * -1;
+        float yDispersion = selectedGun.YBaseDispersion + (selectedGun.DynamicDispersion * 3f);
+        float zDispersion = selectedGun.ZBaseDispersion + (selectedGun.DynamicDispersion * 3f);
+        rb.velocity = ApplyDispersion(direction, yDispersion, zDispersion) * selectedGun.ProjectileVelocity;
+
+        var script = projectile.GetComponent<Projectile>();
+        script.MaxRange = selectedGun.MaxRange;
+        script.OriginPoint = transform.position;
+    }
+
+    /// <summary>
+    /// Applies random dispersion to a direction vector within specified angle ranges.
+    /// </summary>
+    /// <param name="originalDirection">The original direction vector.</param>
+    /// <param name="maxAngleY">Maximum dispersion angle on the Y-axis in degrees.</param>
+    /// <param name="maxAngleZ">Maximum dispersion angle on the Z-axis in degrees.</param>
+    /// <returns>A new direction vector with applied dispersion.</returns>
+    private Vector3 ApplyDispersion(Vector3 originalDirection, float maxAngleY, float maxAngleZ)
+    {
+        // Generate random angles within the specified range
+        float randomAngleY = Random.Range(-maxAngleY, maxAngleY);
+        float randomAngleZ = Random.Range(-maxAngleZ, maxAngleZ);
+
+        // Create a rotation based on the random angles
+        //Quaternion dispersionRotation = Quaternion.Euler(randomAngleY, 0f, randomAngleZ);
+        Quaternion dispersionRotation = Quaternion.Euler(0f, randomAngleY, randomAngleZ);
+
+        // Apply the rotation to the original direction
+        Vector3 dispersedDirection = dispersionRotation * originalDirection;
+
+        return dispersedDirection;
     }
 
     /// <summary>

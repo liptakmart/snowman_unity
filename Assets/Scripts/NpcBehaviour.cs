@@ -124,7 +124,7 @@ public class NpcBehaviour : MonoBehaviour
                     agent.isStopped = false;
                     agent.speed = 1.8f;
                     agent.SetDestination(lastKnownPosition);
-                    Debug.Log($"{gameObject.name} lost sight, switching to FOLLOW state.");
+                    //Debug.Log($"{gameObject.name} lost sight, switching to FOLLOW state.");
                 }
                 else if (npcBehaviorState == NPC_MOVEMENT_STATE.FOLLOW)
                 {
@@ -138,7 +138,7 @@ public class NpcBehaviour : MonoBehaviour
                         agent.isStopped = false;
                         agent.speed = 1f; // Adjust patrol speed as needed
                         SetDestination();
-                        Debug.Log($"{gameObject.name} lost the target and is returning to PATROL.");
+                        //Debug.Log($"{gameObject.name} lost the target and is returning to PATROL.");
                     }
                 }
             }
@@ -215,7 +215,7 @@ public class NpcBehaviour : MonoBehaviour
             lastKnownPosition = visibleTarget.position;
             EngageTarget();
             targetDetected = true;
-            Debug.Log($"{gameObject.name} detected and is engaging {visibleTarget.name}");
+            //Debug.Log($"{gameObject.name} detected and is engaging {visibleTarget.name}");
         }
 
         return targetDetected;
@@ -229,7 +229,7 @@ public class NpcBehaviour : MonoBehaviour
             npcBehaviorState = NPC_MOVEMENT_STATE.ATTACK;
             agent.isStopped = true; // Stop moving
             agent.ResetPath();
-            Debug.Log($"{gameObject.name} is now in ATTACK state.");
+            //Debug.Log($"{gameObject.name} is now in ATTACK state.");
         }
     }
 
@@ -253,7 +253,7 @@ public class NpcBehaviour : MonoBehaviour
             npcBehaviorState = NPC_MOVEMENT_STATE.ATTACK;
             agent.isStopped = true;
             agent.ResetPath();
-            Debug.Log($"{gameObject.name} regained sight, switching to ATTACK state.");
+            //Debug.Log($"{gameObject.name} regained sight, switching to ATTACK state.");
         }
         else
         {
@@ -264,7 +264,7 @@ public class NpcBehaviour : MonoBehaviour
             {
                 agent.isStopped = false;
                 agent.SetDestination(lastKnownPosition);
-                Debug.Log($"{gameObject.name} is following to last known position.");
+                //Debug.Log($"{gameObject.name} is following to last known position.");
             }
             else
             {
@@ -275,7 +275,7 @@ public class NpcBehaviour : MonoBehaviour
                 // Rotate to look around
                 SearchForTarget();
 
-                Debug.Log($"{gameObject.name} reached last known position and is searching.");
+                //Debug.Log($"{gameObject.name} reached last known position and is searching.");
             }
         }
     }
@@ -302,7 +302,7 @@ public class NpcBehaviour : MonoBehaviour
             agent.isStopped = false;
             agent.speed = 1.8f; // Set follow speed
             agent.SetDestination(lastKnownPosition);
-            Debug.Log($"{gameObject.name} lost sight, switching to FOLLOW state.");
+            //Debug.Log($"{gameObject.name} lost sight, switching to FOLLOW state.");
         }
     }
 

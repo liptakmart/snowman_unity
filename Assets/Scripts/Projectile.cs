@@ -14,6 +14,15 @@ public class Projectile : MonoBehaviour
     /// </summary>
     public int FiredBySnowmanId;
 
+    /// <summary>
+    /// Point of origin to compare distance it traveled
+    /// </summary>
+    public Vector3 OriginPoint;
+    /// <summary>
+    /// Maximal range it can travel
+    /// </summary>
+    public float MaxRange;
+
     private Rigidbody rb;
 
     // Start is called before the first frame update
@@ -33,7 +42,15 @@ public class Projectile : MonoBehaviour
         //ignore self
         Physics.IgnoreLayerCollision(projectileLayer, projectileLayer);
 
-        Destroy(this.gameObject, 10f);
+        Destroy(this.gameObject, 10f); //TODO reconsider
+    }
+
+    private void Update()
+    {
+        if (Vector3.Distance(transform.position, OriginPoint) >= MaxRange)
+        {
+            Destroy(transform.gameObject);
+        }
     }
 
 
@@ -103,5 +120,6 @@ public class Projectile : MonoBehaviour
             }
         }
         IsLethal = false;
+        Destroy(transform.gameObject, 3f); //TODO reconsider
     }
 }

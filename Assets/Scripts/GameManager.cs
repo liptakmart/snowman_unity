@@ -256,6 +256,45 @@ public abstract class Gun : MonoBehaviour
     /// Delay after firing before the gun can fire again, in seconds.
     /// </summary>
     public float FireDelayInSec { get; set; }
+    /// <summary>
+    /// Max range of this gun
+    /// </summary>
+    public float MaxRange { get; set; }
+
+    private float dynamicDispersion = 0f;
+    /// <summary>
+    /// Dispersion level. If fires consecuntly it increaces and if not fire gradually decreaces
+    /// </summary>
+    public float DynamicDispersion
+    {
+        get { return dynamicDispersion; }
+        private set { dynamicDispersion = Mathf.Clamp(value, 0f, 1f); }
+    }
+
+    /// <summary>
+    /// Base dispersion. Default. It combines with dynamic one. This represents angle. Y axis.
+    /// </summary>
+    public float YBaseDispersion { get; set; }    
+    /// <summary>
+    /// Base dispersion. Default. It combines with dynamic one. This represents angle. Z axis.
+    /// </summary>
+    public float ZBaseDispersion { get; set; }
+    /// <summary>
+    /// Dispersion decreace per second
+    /// </summary>
+    public float DispersionDecayRate = 0.05f;
+    /// <summary>
+    /// Dispersion increace by each shot
+    /// </summary>
+    public float DispersionIncreaseByShot = 0.5f;
+    /// <summary>
+    /// Interval in seconds between each dispersion decay.
+    /// </summary>
+    private float DispersionDecayInterval = 0.2f;
+    /// <summary>
+    /// Size of projectile fired from this gun
+    /// </summary>
+    public float ProjectileSize { get; set; }
 
     /// <summary>
     /// Reference for instantiated game object Weapon
@@ -279,6 +318,7 @@ public abstract class Gun : MonoBehaviour
 
     protected virtual void Awake()
     {
+        StartCoroutine(DispersionDecayCoroutine());
     }
 
     public bool IsAmmoInMagazine()
@@ -301,6 +341,7 @@ public abstract class Gun : MonoBehaviour
 
         if (AmmoInMagazine > 0)
         {
+            IncreaseDispersion();
             AmmoInMagazine--;
 
             // Fire logic here
@@ -323,6 +364,36 @@ public abstract class Gun : MonoBehaviour
         {
             //Debug.Log(Name + " is out of ammo. Reload needed.");
             Reload();
+        }
+    }
+
+    /// <summary>
+    /// Increases the Dispersion by a predefined amount.
+    /// </summary>
+    protected void IncreaseDispersion()
+    {
+        DynamicDispersion += DispersionIncreaseByShot;
+        Debug.Log($"{Name} dispersion increased to {DynamicDispersion}");
+    }
+
+    /// <summary>
+    /// Coroutine that decreases Dispersion periodically.
+    /// </summary>
+    /// <returns></returns>
+    private IEnumerator DispersionDecayCoroutine()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(DispersionDecayInterval);
+
+            if (DynamicDispersion > 0f)
+            {
+                DynamicDispersion -= DispersionDecayRate;
+                if (DynamicDispersion < 0f)
+                    DynamicDispersion = 0f;
+
+                Debug.Log($"{Name} dispersion decreased to {DynamicDispersion}");
+            }
         }
     }
 
@@ -401,6 +472,25 @@ public abstract class Gun : MonoBehaviour
         }
     }
 
+    // New method to increase dispersion
+    protected void IncreaseDispersion(float amount)
+    {
+        DynamicDispersion += amount;
+        Debug.Log($"{Name} dispersion increased to {DynamicDispersion}");
+
+        // Start coroutine to decrease dispersion after delay
+        StartCoroutine(DecreaseDispersionAfterDelay(amount, 0.2f)); // 0.2 seconds delay
+    }
+
+    // Coroutine to decrease dispersion
+    private IEnumerator DecreaseDispersionAfterDelay(float amount, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        DynamicDispersion -= amount;
+        Debug.Log($"{Name} dispersion decreased to {DynamicDispersion}");
+    }
+
     /// <summary>
     /// Can fire projectile now
     /// </summary>
@@ -442,6 +532,7 @@ public class Pistol : Gun
 {
     protected override void Awake()
     {
+        base.Awake();
         Name = "Pistol";
         GunType = GUN_TYPE.PISTOL;
         AmmoInMagazine = 12;
@@ -452,6 +543,12 @@ public class Pistol : Gun
         ProjectileMass = 2;
         ReloadTimeSec = 1.5f;
         FireDelayInSec = 0.01f;
+        MaxRange = 50f;
+        YBaseDispersion = 7f;
+        ZBaseDispersion = 5f;
+        DispersionIncreaseByShot = 0.1f;
+        DispersionDecayRate= 0.2f;
+        ProjectileSize = 5f; 
     }
 }
 
@@ -459,16 +556,23 @@ public class Shotgun : Gun
 {
     protected override void Awake()
     {
+        base.Awake();
         Name = "Shotgun";
         GunType = GUN_TYPE.SHOTGUN;
         AmmoInMagazine = 6;
         MagazineCapacity = 6;
         SpareAmmo = 6;
         IsAutomatic = false;
-        ProjectileVelocity = 20;
+        ProjectileVelocity = 15;
         ProjectileMass = 3;
         ReloadTimeSec = 7f;
         FireDelayInSec = 1.5f;
+        MaxRange = 12.5f;
+        YBaseDispersion = 7f;
+        ZBaseDispersion = 15f;
+        DispersionIncreaseByShot = 1f;
+        DispersionDecayRate = 0.2f;
+        ProjectileSize = 1f;
     }
 }
 
@@ -476,9 +580,10 @@ public class Smg : Gun
 {
     protected override void Awake()
     {
+        base.Awake();
         Name = "Smg";
         GunType = GUN_TYPE.SMG;
-        AmmoInMagazine = 30;
+        AmmoInMagazine = 1000;
         MagazineCapacity = 30;
         SpareAmmo = 30;
         IsAutomatic = true;
@@ -486,5 +591,11 @@ public class Smg : Gun
         ProjectileMass = 3;
         ReloadTimeSec = 6f;
         FireDelayInSec = 0.05f;
+        MaxRange = 50;
+        YBaseDispersion = 7f;
+        ZBaseDispersion = 5f;
+        DispersionIncreaseByShot = 0.1f;
+        DispersionDecayRate = 0.15f;
+        ProjectileSize = 5f;
     }
 }
