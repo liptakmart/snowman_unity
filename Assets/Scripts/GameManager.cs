@@ -5,11 +5,26 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
+    /**
+     * Prefabs
+     */
     public GameObject GameManagerRef;
     public GameObject PlayerSnowmanPrefabRef;
     public GameObject NpcSnowmanPrefabRef;
     public GameObject ProjectilePrefabRef;
     public GameObject CanvasRef;
+
+    public AudioClip PistolShotAudio;
+    public AudioClip PistolReloadAudio;
+    public AudioClip PistolEmptyAudio;
+
+    public AudioClip SmgShotAudio;
+    public AudioClip SmgReloadAudio;
+    public AudioClip SmgEmptyAudio;
+
+    public AudioClip ShotgunShotAudio;
+    public AudioClip ShotgunReload;
+    public AudioClip ShotgunEmptyAudio;
 
     public List<GameObject> SpawnPoints;
     public List<GameObject> PatrolPoints;
@@ -56,9 +71,22 @@ public class GameManager : MonoBehaviour
         State._state.SpawnPoints = SpawnPoints;
         State._state.PatrolPoints = PatrolPoints;
         State._state.Canvas = CanvasRef;
+
         State._prefabs.PlayerSnowmanPrefabRef = PlayerSnowmanPrefabRef;
         State._prefabs.NpcSnowmanPrefabRef = NpcSnowmanPrefabRef;
         State._prefabs.ProjectilePrefabRef = ProjectilePrefabRef;
+
+        State._prefabs.AudioPrefabs.PistolEmptyAudio = PistolEmptyAudio;
+        State._prefabs.AudioPrefabs.PistolReloadAudio = PistolReloadAudio;
+        State._prefabs.AudioPrefabs.PistolShotAudio = PistolShotAudio;
+
+        State._prefabs.AudioPrefabs.ShotgunEmptyAudio = ShotgunEmptyAudio;
+        State._prefabs.AudioPrefabs.ShotgunReload = ShotgunReload;
+        State._prefabs.AudioPrefabs.ShotgunShotAudio = ShotgunShotAudio;
+
+        State._prefabs.AudioPrefabs.SmgEmptyAudio = SmgEmptyAudio;
+        State._prefabs.AudioPrefabs.SmgReloadAudio = SmgReloadAudio;
+        State._prefabs.AudioPrefabs.SmgShotAudio = SmgShotAudio;
     }
 
     public GameObject[] SpawnSnowmen(int?[] snowmanId, bool[] isNpcArr, int[] teamIds, GUN_TYPE[] gunType, List<GUN_TYPE[]> ownedGuns)
@@ -168,7 +196,7 @@ public class GameManager : MonoBehaviour
 public static class State
 {
     public static LevelState _state = new LevelState();
-    public static Prefabs _prefabs = new Prefabs();
+    public static Prefabs _prefabs = new Prefabs(); 
 }
 
 public class Prefabs
@@ -176,6 +204,23 @@ public class Prefabs
     public GameObject PlayerSnowmanPrefabRef;
     public GameObject NpcSnowmanPrefabRef;
     public GameObject ProjectilePrefabRef;
+
+    public AudioPrefabs AudioPrefabs = new AudioPrefabs();
+}
+
+public class AudioPrefabs
+{
+    public AudioClip PistolShotAudio;
+    public AudioClip PistolReloadAudio;
+    public AudioClip PistolEmptyAudio;
+
+    public AudioClip SmgShotAudio;
+    public AudioClip SmgReloadAudio;
+    public AudioClip SmgEmptyAudio;
+
+    public AudioClip ShotgunShotAudio;
+    public AudioClip ShotgunReload;
+    public AudioClip ShotgunEmptyAudio;
 }
 
 public class LevelState
@@ -300,6 +345,10 @@ public abstract class Gun : MonoBehaviour
     /// Reference for instantiated game object Weapon
     /// </summary>
     public GameObject GameObjectRef { get; set; }
+    /// <summary>
+    /// Audio source ref of snowman
+    /// </summary>
+    public AudioSource AudioSourceRef { get; set; }
 
     protected bool isReloading = false;
     protected Coroutine reloadCoroutine;
@@ -331,7 +380,7 @@ public abstract class Gun : MonoBehaviour
         return SpareAmmo > 0 && AmmoInMagazine < MagazineCapacity;
     }
 
-    public virtual void Fire()
+    public virtual void Fire(GameObject snowmanModel, SnowmanState snowman)
     {
         if (isReloading)
             return;
@@ -344,9 +393,26 @@ public abstract class Gun : MonoBehaviour
             IncreaseDispersion();
             AmmoInMagazine--;
 
+            // Calculate the spawn position using the child object's position and applying the offset in local space
+            Vector3 spawnPosition = snowmanModel.transform.TransformPoint(new Vector3(-2.87f, 4.42f, 0.83f));
+            // Since the snowmanModel's forward is not aligned as expected, let's use its right axis for the projectile's line of sight
+            Quaternion spawnRotation = Quaternion.LookRotation(snowmanModel.transform.right);
+
             // Fire logic here
             //Debug.Log(Name + " fired. Ammo left: " + AmmoInMagazine);
-
+            if (this is Pistol)
+            {
+                FirePistolProjectile(spawnPosition, spawnRotation, snowman);
+            }
+            else if (this is Shotgun)
+            {
+                FireShotgunProjectile(spawnPosition, spawnRotation, snowman);
+            }
+            else if (this is Smg)
+            {
+                FireSmgProjectile(spawnPosition, spawnRotation, snowman);
+            }
+            PlayShotAudio();
             // Invoke the OnFired event
             OnFired?.Invoke();
 
@@ -368,12 +434,127 @@ public abstract class Gun : MonoBehaviour
     }
 
     /// <summary>
+    /// Applies random dispersion to a direction vector within specified angle ranges.
+    /// </summary>
+    /// <param name="originalDirection">The original direction vector.</param>
+    /// <param name="maxAngleY">Maximum dispersion angle on the Y-axis in degrees.</param>
+    /// <param name="maxAngleZ">Maximum dispersion angle on the Z-axis in degrees.</param>
+    /// <returns>A new direction vector with applied dispersion.</returns>
+    private Vector3 ApplyDispersion(Vector3 originalDirection, float maxAngleY, float maxAngleZ)
+    {
+        // Generate random angles within the specified range
+        float randomAngleY = UnityEngine.Random.Range(-maxAngleY, maxAngleY);
+        float randomAngleZ = UnityEngine.Random.Range(-maxAngleZ, maxAngleZ);
+
+        // Create a rotation based on the random angles
+        //Quaternion dispersionRotation = Quaternion.Euler(randomAngleY, 0f, randomAngleZ);
+        Quaternion dispersionRotation = Quaternion.Euler(0f, randomAngleY, randomAngleZ);
+
+        // Apply the rotation to the original direction
+        Vector3 dispersedDirection = dispersionRotation * originalDirection;
+
+        return dispersedDirection;
+    }
+
+    private void FirePistolProjectile(Vector3 projectilePos, Quaternion projectileRot, SnowmanState snowman)
+    {
+        GameObject projectilePrefab = State._prefabs.ProjectilePrefabRef;
+        projectilePrefab.transform.localScale = new Vector3(ProjectileSize, ProjectileSize, ProjectileSize);
+
+        var projectile = Instantiate(projectilePrefab, projectilePos, projectileRot);
+        projectile.GetComponent<Projectile>().FiredBySnowmanId = snowman.SnowmanId;
+        projectile.GetComponent<Projectile>().FiredBy = snowman;
+
+        var rb = projectile.GetComponent<Rigidbody>();
+
+        Vector3 direction = projectile.transform.forward * -1;
+        float yDispersion = YBaseDispersion + (DynamicDispersion * 3f);
+        float zDispersion = ZBaseDispersion + (DynamicDispersion * 3f);
+        rb.velocity = ApplyDispersion(direction, yDispersion, zDispersion) * ProjectileVelocity;
+
+        var script = projectile.GetComponent<Projectile>();
+        script.MaxRange = MaxRange;
+        script.OriginPoint = transform.position;
+    }
+
+    private void FireShotgunProjectile(Vector3 projectilePos, Quaternion projectileRot, SnowmanState snowman)
+    {
+        List<float> widthAngleOffsets = new List<float>();
+        float yLowerBound = -6.0f;
+        float yStep = 0.50f;
+        for (float i = yLowerBound; i <= yLowerBound * -1; i += yStep)
+        {
+            widthAngleOffsets.Add(i);
+        }
+
+        List<float> heightAnglesOffsets = new List<float>();
+        float xLowerBound = -6f;
+        float xStep = 2f;
+        for (float i = xLowerBound; i <= xLowerBound * -1; i += xStep)
+        {
+            heightAnglesOffsets.Add(i);
+        }
+
+        for (int i = 0; i < heightAnglesOffsets.Count; i++)
+        {
+            for (int j = 0; j < widthAngleOffsets.Count; j++)
+            {
+                GameObject projectilePrefab = State._prefabs.ProjectilePrefabRef;
+                projectilePrefab.transform.localScale = new Vector3(ProjectileSize, ProjectileSize, ProjectileSize);
+
+                // Instantiate the projectile
+                var projectile = Instantiate(projectilePrefab, projectilePos, projectileRot);
+                projectile.GetComponent<Projectile>().FiredBySnowmanId = snowman.SnowmanId;
+                projectile.GetComponent<Projectile>().FiredBy = snowman;
+
+                var rb = projectile.GetComponent<Rigidbody>();
+                // Original forward direction (negative due to your setup)
+                Vector3 forward = projectile.transform.forward * -1;
+
+                // Rotate the forward vector by the angle offset around the Y-axis
+                Quaternion rotation = Quaternion.Euler(heightAnglesOffsets[i], widthAngleOffsets[j], 0);
+                Vector3 adjustedDirection = rotation * forward;
+
+                float yDispersion = YBaseDispersion + (DynamicDispersion * 3f);
+                float zDispersion = ZBaseDispersion + (DynamicDispersion * 3f);
+
+                // Apply the adjusted velocity
+                rb.velocity = ApplyDispersion(adjustedDirection.normalized, yDispersion, zDispersion) * ProjectileVelocity;
+
+                var script = projectile.GetComponent<Projectile>();
+                script.MaxRange = MaxRange;
+                script.OriginPoint = transform.position;
+            }
+        }
+    }
+
+    private void FireSmgProjectile(Vector3 projectilePos, Quaternion projectileRot, SnowmanState snowman)
+    {
+        GameObject projectilePrefab = State._prefabs.ProjectilePrefabRef;
+        projectilePrefab.transform.localScale = new Vector3(ProjectileSize, ProjectileSize, ProjectileSize);
+
+        var projectile = Instantiate(projectilePrefab, projectilePos, projectileRot);
+        projectile.GetComponent<Projectile>().FiredBySnowmanId = snowman.SnowmanId;
+        projectile.GetComponent<Projectile>().FiredBy = snowman;
+        var rb = projectile.GetComponent<Rigidbody>();
+
+        Vector3 direction = projectile.transform.forward * -1;
+        float yDispersion = YBaseDispersion + (DynamicDispersion * 3f);
+        float zDispersion = ZBaseDispersion + (DynamicDispersion * 3f);
+        rb.velocity = ApplyDispersion(direction, yDispersion, zDispersion) * ProjectileVelocity;
+
+        var script = projectile.GetComponent<Projectile>();
+        script.MaxRange = MaxRange;
+        script.OriginPoint = transform.position;
+    }
+
+    /// <summary>
     /// Increases the Dispersion by a predefined amount.
     /// </summary>
     protected void IncreaseDispersion()
     {
         DynamicDispersion += DispersionIncreaseByShot;
-        Debug.Log($"{Name} dispersion increased to {DynamicDispersion}");
+        //Debug.Log($"{Name} dispersion increased to {DynamicDispersion}");
     }
 
     /// <summary>
@@ -392,7 +573,7 @@ public abstract class Gun : MonoBehaviour
                 if (DynamicDispersion < 0f)
                     DynamicDispersion = 0f;
 
-                Debug.Log($"{Name} dispersion decreased to {DynamicDispersion}");
+                //Debug.Log($"{Name} dispersion decreased to {DynamicDispersion}");
             }
         }
     }
@@ -413,6 +594,7 @@ public abstract class Gun : MonoBehaviour
             CancelFireDelay();
 
             // Invoke the OnReloadStarted event
+            PlayReloadAudio();
             OnReloadStarted?.Invoke();
 
             // Start the reload coroutine
@@ -526,6 +708,122 @@ public abstract class Gun : MonoBehaviour
     {
         return AmmoInMagazine == MagazineCapacity;
     }
+
+    /// <summary>
+    /// Plays reload audio clip for selected gun
+    /// </summary>
+    private void PlayReloadAudio()
+    {
+        AudioClip clipToPlay = null;
+        float reloadTime = ReloadTimeSec;
+        float clipLength = 0f;
+
+        if (this is Pistol)
+        {
+            clipToPlay = State._prefabs.AudioPrefabs.PistolReloadAudio;
+        }
+        else if (this is Shotgun)
+        {
+            clipToPlay = State._prefabs.AudioPrefabs.ShotgunReload;
+        }
+        else if (this is Smg)
+        {
+            clipToPlay = State._prefabs.AudioPrefabs.SmgReloadAudio;
+        }
+
+        if (clipToPlay != null)
+        {
+            clipLength = clipToPlay.length;
+
+            // Calculate the required pitch adjustment
+            float pitch = clipLength / reloadTime;
+
+            // Clamp the pitch to prevent extreme adjustments
+            pitch = Mathf.Clamp(pitch, 0.5f, 2f);
+
+            // Set the pitch on the audio source
+            AudioSourceRef.pitch = pitch;
+
+            // Play the audio clip
+            AudioSourceRef.PlayOneShot(clipToPlay);
+
+            // Start a coroutine to reset the pitch after the adjusted playback duration
+            StartCoroutine(ResetAudioPitchAfterDelay(clipLength / pitch));
+        }
+    }
+
+    /// <summary>
+    /// Plays shot audio clip for selected gun
+    /// </summary>
+    private void PlayShotAudio()
+    {
+        if (this is Pistol)
+        {
+            AudioSourceRef.PlayOneShot(State._prefabs.AudioPrefabs.PistolShotAudio);
+        }
+        else if (this is Shotgun)
+        {
+            var shotAudio = State._prefabs.AudioPrefabs.ShotgunShotAudio;
+            float clipLength = shotAudio.length;
+            // Calculate the required pitch adjustment
+            float pitch = clipLength / FireDelayInSec;
+
+            // Clamp the pitch to prevent extreme adjustments
+            pitch = Mathf.Clamp(pitch, 0.5f, 2f);
+
+            // Set the pitch on the audio source
+            AudioSourceRef.pitch = pitch;
+
+            // Play the audio clip
+            AudioSourceRef.PlayOneShot(shotAudio);
+
+            // Start a coroutine to reset the pitch after the adjusted playback duration
+            StartCoroutine(ResetAudioPitchAfterDelay(clipLength / pitch));
+        }
+        else if (this is Smg)
+        {
+            AudioSourceRef.PlayOneShot(State._prefabs.AudioPrefabs.SmgShotAudio);
+        }
+    }
+
+    /// <summary>
+    /// Play empty click audio clip for selected gun
+    /// </summary>
+    public void PlayEmptyAudio()
+    {
+        //prevent duplical plays
+        if (AudioSourceRef.isPlaying)
+        {
+            return;
+        }
+
+        if (this is Pistol)
+        {
+            AudioSourceRef.PlayOneShot(State._prefabs.AudioPrefabs.PistolEmptyAudio);
+        }
+        else if (this is Shotgun)
+        {
+            AudioSourceRef.PlayOneShot(State._prefabs.AudioPrefabs.ShotgunEmptyAudio);
+        }
+        else if (this is Smg)
+        {
+            AudioSourceRef.PlayOneShot(State._prefabs.AudioPrefabs.SmgEmptyAudio);
+        }
+    }
+
+    /// <summary>
+    /// Stops audio
+    /// </summary>
+    public void StopAudio()
+    {
+        AudioSourceRef.Stop();
+    }
+
+    private IEnumerator ResetAudioPitchAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        AudioSourceRef.pitch = 1f;
+    }
 }
 
 public class Pistol : Gun
@@ -542,7 +840,7 @@ public class Pistol : Gun
         ProjectileVelocity = 20;
         ProjectileMass = 2;
         ReloadTimeSec = 1.5f;
-        FireDelayInSec = 0.01f;
+        FireDelayInSec = 0.2f;
         MaxRange = 50f;
         YBaseDispersion = 7f;
         ZBaseDispersion = 5f;
@@ -583,7 +881,7 @@ public class Smg : Gun
         base.Awake();
         Name = "Smg";
         GunType = GUN_TYPE.SMG;
-        AmmoInMagazine = 1000;
+        AmmoInMagazine = 30;
         MagazineCapacity = 30;
         SpareAmmo = 30;
         IsAutomatic = true;

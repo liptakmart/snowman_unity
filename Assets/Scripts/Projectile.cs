@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
@@ -13,6 +14,10 @@ public class Projectile : MonoBehaviour
     /// Id of snowman which has fired this projectile
     /// </summary>
     public int FiredBySnowmanId;
+    /// <summary>
+    /// Reference to snowman who fired this projectile, may be null if already killed
+    /// </summary>
+    public SnowmanState FiredBy;
 
     /// <summary>
     /// Point of origin to compare distance it traveled
@@ -81,27 +86,34 @@ public class Projectile : MonoBehaviour
             }
             else
             {
+                FiredBy.InvokeOnMyKill(FiredBySnowmanId);
+
                 //disperse enemy corpse
                 var modelParent = snowmanState.snowmanModel;
-                var cylinderGo = modelParent.transform.Find("Cylinder").gameObject;
+
+                if (modelParent.transform.Find("Cylinder") != null)
+                {
+                    var cylinderGo = modelParent.transform.Find("Cylinder").gameObject;
+                    cylinderGo.transform.parent = null;
+                    cylinderGo.AddComponent<Rigidbody>();
+                    Destroy(cylinderGo, 10f);
+                }
+
                 var legsGo = modelParent.transform.Find("Legs").gameObject;
                 var bodyGo = modelParent.transform.Find("Body").gameObject;
                 var headGo = modelParent.transform.Find("Head").gameObject;
                 var gunsGo = modelParent.transform.Find("Guns").gameObject;
-
-                cylinderGo.transform.parent = null;
+               
                 legsGo.transform.parent = null;
                 bodyGo.transform.parent = null;
                 headGo.transform.parent = null;
                 gunsGo.transform.parent = null;
-
-                cylinderGo.AddComponent<Rigidbody>();
+                
                 legsGo.AddComponent<Rigidbody>();
                 bodyGo.AddComponent<Rigidbody>();
                 headGo.AddComponent<Rigidbody>();
                 gunsGo.AddComponent<Rigidbody>();
 
-                Destroy(cylinderGo, 10f);
                 Destroy(legsGo, 10f);
                 Destroy(bodyGo, 10f);
                 Destroy(headGo, 10f);
@@ -122,4 +134,6 @@ public class Projectile : MonoBehaviour
         IsLethal = false;
         Destroy(transform.gameObject, 3f); //TODO reconsider
     }
+
+
 }

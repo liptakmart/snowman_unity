@@ -15,18 +15,6 @@ public class SnowmanState : MonoBehaviour
     public GameObject pistolGo;
     public GameObject shotgunGo;
     public GameObject smgGo;
-
-    public AudioClip pistolShotAudio;
-    public AudioClip pistolReloadAudio;
-    public AudioClip pistolEmptyAudio;
-
-    public AudioClip smgShotAudio;
-    public AudioClip smgReloadAudio;
-    public AudioClip smgEmptyAudio;
-
-    public AudioClip shotgunShotAudio;
-    public AudioClip shotgunReload;
-    public AudioClip shotgunEmptyAudio;
     /**
      * END
      */
@@ -59,6 +47,15 @@ public class SnowmanState : MonoBehaviour
     public List<Gun> OwnedGuns
     {
         get; set;
+    }
+
+    /// <summary>
+    /// When this snowman kills someone, returns id of killed
+    /// </summary>
+    public event Action<int> OnMyKill;
+    public void InvokeOnMyKill(int snowmanId)
+    {
+        OnMyKill?.Invoke(snowmanId);
     }
 
     public Gun SelectedGun { get; set; }
@@ -94,6 +91,7 @@ public class SnowmanState : MonoBehaviour
                 pistolGunObject.transform.parent = this.transform;
                 Pistol pistolObj = pistolGunObject.AddComponent<Pistol>();
                 pistolObj.GameObjectRef = pistolGo; // Assign the visual model
+                pistolObj.AudioSourceRef = GetComponent<AudioSource>();
                 OwnedGuns.Add(pistolObj);
 
             }
@@ -104,6 +102,7 @@ public class SnowmanState : MonoBehaviour
                 shotgunGunObject.transform.parent = this.transform;
                 Shotgun shotgunObj = shotgunGunObject.AddComponent<Shotgun>();
                 shotgunObj.GameObjectRef = shotgunGo;
+                shotgunObj.AudioSourceRef = GetComponent<AudioSource>();
                 OwnedGuns.Add(shotgunObj);
             }
             else if (gun == GUN_TYPE.SMG)
@@ -112,6 +111,7 @@ public class SnowmanState : MonoBehaviour
                 smgGunObject.transform.parent = this.transform;
                 Smg smgObj = smgGunObject.AddComponent<Smg>();
                 smgObj.GameObjectRef = smgGo;
+                smgObj.AudioSourceRef = GetComponent<AudioSource>();
                 OwnedGuns.Add(smgObj);
             }
         }

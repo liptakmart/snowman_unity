@@ -8,7 +8,6 @@ public class NpcBehaviour : MonoBehaviour
 {
     // Components and references
     private NavMeshAgent agent;
-    private AudioSource audioSource;
     private SnowmanState snowmanState;
     private LevelState levelState;
     private Gun selectedGun;
@@ -68,7 +67,6 @@ public class NpcBehaviour : MonoBehaviour
     {
         // Initialize components and variables
         agent = GetComponent<NavMeshAgent>();
-        audioSource = GetComponent<AudioSource>();
         snowmanState = GetComponent<SnowmanState>();
         selectedGun = snowmanState.SelectedGun;
         ownedGuns = snowmanState.OwnedGuns;
@@ -84,11 +82,14 @@ public class NpcBehaviour : MonoBehaviour
 
         // Start vision checking coroutine
         visionCoroutine = StartCoroutine(VisionRoutine());
+
+        SubscribeToEvents();
     }
 
     // Update is called once per frame
     void Update()
     {
+        //Debug.Log(npcBehaviorState.ToString());
         switch (npcBehaviorState)
         {
             case NPC_MOVEMENT_STATE.PATROL:
@@ -101,6 +102,34 @@ public class NpcBehaviour : MonoBehaviour
                 HandleAttackState();
                 break;
         }
+    }
+
+    private void SubscribeToEvents()
+    {
+        snowmanState.OnMyKill += HandleOnMyKill;
+        //gun.OnReloadStarted += HandleReloadStarted;
+        //gun.OnReloadFinished += HandleReloadFinished;
+        //gun.OnReloadCanceled += HandleReloadCanceled;
+        //gun.OnFired += HandleFired;
+        //gun.OnReadyToFire += HandleReadyToFire; // Subscribe to new event
+        //gun.OnAmmoChanged += HandleAmmoChanged;
+    }
+
+    private void UnsubscribeFromEvents()
+    {
+        snowmanState.OnMyKill -= HandleOnMyKill;
+        //gun.OnReloadStarted -= HandleReloadStarted;
+        //gun.OnReloadFinished -= HandleReloadFinished;
+        //gun.OnReloadCanceled -= HandleReloadCanceled;
+        //gun.OnFired -= HandleFired;
+        //gun.OnReadyToFire -= HandleReadyToFire; // Unsubscribe from new event
+        //gun.OnAmmoChanged -= HandleAmmoChanged;
+    }
+
+    private void HandleOnMyKill(int enemyId)
+    {
+        Debug.Log("Killed enemy:" + enemyId);
+        ResetNpcState();
     }
 
     // Coroutine for periodic vision checks
@@ -174,6 +203,11 @@ public class NpcBehaviour : MonoBehaviour
             if (targetCollider.gameObject.CompareTag(Constants.TAG_PLAYER))
             {
                 Transform target = targetCollider.transform;
+
+                // Ensure the player is alive
+                SnowmanState player = targetCollider.GetComponent<SnowmanState>();
+                if (player != null && !player.IsAlive)
+                    continue;
 
                 // Step 2: Calculate direction to target
                 Vector3 directionToTarget = (target.position - transform.position).normalized;
@@ -274,7 +308,6 @@ public class NpcBehaviour : MonoBehaviour
 
                 // Rotate to look around
                 SearchForTarget();
-
                 //Debug.Log($"{gameObject.name} reached last known position and is searching.");
             }
         }
@@ -327,7 +360,8 @@ public class NpcBehaviour : MonoBehaviour
     // Placeholder for attack logic
     private void PerformAttack()
     {
-        Debug.Log("Shoot");
+        selectedGun.Fire(snowmanModel, snowmanState);
+        //selectedGun
         // Implement your attack logic here (e.g., shooting)
     }
 
@@ -366,6 +400,17 @@ public class NpcBehaviour : MonoBehaviour
         levelState.NpcSnowmanRef.Add(snowman);
     }
 
+    private void ResetNpcState()
+    {
+        npcBehaviorState = NPC_MOVEMENT_STATE.PATROL;
+        agent.isStopped = false;
+        agent.speed = 1f;
+        SetDestination();
+        lastKnownPosition = Vector3.zero;
+        timeSinceLastSeen = 0f;
+        visibleTarget = null;
+    }
+
     // Gizmos for visualization
     void OnDrawGizmos()
     {
@@ -397,5 +442,11 @@ public class NpcBehaviour : MonoBehaviour
         {
             StopCoroutine(visionCoroutine);
         }
+    }
+
+    private void OnDestroy()
+    {
+        UnsubscribeFromEvents();
+        snowmanState.IsAlive = false;
     }
 }

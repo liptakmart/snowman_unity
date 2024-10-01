@@ -172,6 +172,15 @@ MonoBehaviour:
   NpcSnowmanPrefabRef: {fileID: 2096479495286192343, guid: c68bc837559c0ed4da9952e1a3fdb536, type: 3}
   ProjectilePrefabRef: {fileID: 3975542845730912265, guid: 90ed7578d1a893c4ea06300564bd01ab, type: 3}
   CanvasRef: {fileID: 1639044630}
+  PistolShotAudio: {fileID: 8300000, guid: ef6c68ac76bb55a44a98cfab80c47255, type: 3}
+  PistolReloadAudio: {fileID: 8300000, guid: 8e610ee68b70f4449afc5077e09303ba, type: 3}
+  PistolEmptyAudio: {fileID: 8300000, guid: 2d14f144f7dfc664b984fb90976ffc04, type: 3}
+  SmgShotAudio: {fileID: 8300000, guid: 585e8c797b612b748adffc27e5fb6ad8, type: 3}
+  SmgReloadAudio: {fileID: 8300000, guid: 92063cb46d88e20419ab4bd3e7e45037, type: 3}
+  SmgEmptyAudio: {fileID: 8300000, guid: 68b2f13ccd3e3384c934eb350a5dee4f, type: 3}
+  ShotgunShotAudio: {fileID: 8300000, guid: 58e1a3b648997ce43b2c3b146e3366a9, type: 3}
+  ShotgunReload: {fileID: 8300000, guid: c93995b8515b9b4438ae5dde7fba0628, type: 3}
+  ShotgunEmptyAudio: {fileID: 8300000, guid: 7c27fe51a4262fb429608015d54db9c3, type: 3}
   SpawnPoints:
   - {fileID: 8743183836161900165}
   - {fileID: 753251433}
