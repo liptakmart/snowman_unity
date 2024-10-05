@@ -13,7 +13,9 @@ public class Combat : MonoBehaviour
     private Gun selectedGun;
     private List<Gun> ownedGuns;
     private GameObject snowmanModel;
-    private GameManager manager;
+    private SpawnManager spawnManager;
+
+    public Gun SelectedGun { get { return this.selectedGun;} }
 
     // Start is called before the first frame update
     void Start()
@@ -24,7 +26,7 @@ public class Combat : MonoBehaviour
         ownedGuns = snowmanState.OwnedGuns;
         levelState = State._state;
         snowmanModel = snowmanState.snowmanModel;
-        manager = levelState.GameManagerScriptObj;
+        spawnManager = levelState.SpawnManagerScriptObj;
 
         SubscribeToGunEvents(snowmanState.SelectedGun);
         SubscribeToEvents();
@@ -76,12 +78,12 @@ public class Combat : MonoBehaviour
 
     private void SubscribeToEvents()
     {
-        snowmanState.OnMyKill += HandleOnMyKill;
+        snowmanState.OnIKilledSomeone += HandleOnMyKill;
     }
 
     private void UnsubscribeFromEvents()
     {
-        snowmanState.OnMyKill -= HandleOnMyKill;
+        snowmanState.OnIKilledSomeone -= HandleOnMyKill;
     }
 
     private void HandleOnMyKill(int enemyId)
@@ -217,11 +219,20 @@ public class Combat : MonoBehaviour
         }
     }
 
+    public void OnGunPicked(GUN_TYPE gunType)
+    {
+        snowmanState.AddGunOrAmmo(gunType);
+        //Debug.Log("gun picked");
+    }
+
     /// <summary>
     /// Kill this snowman instance
     /// </summary>
     public void Die()
     {
+        //respawn
+        spawnManager.RespawnSnowman(false, snowmanState.SnowmanId, snowmanState.TeamId);
+
         Collider col = GetComponent<Collider>();
         Rigidbody rb = GetComponent<Rigidbody>();
         if (col != null && rb != null)
@@ -230,18 +241,11 @@ public class Combat : MonoBehaviour
             Destroy(rb);
         }
 
-        int snowmanId = snowmanState.SnowmanId;
-        int teamId = snowmanState.TeamId;
         snowmanState.IsAlive = false;
 
-        levelState.GameManagerRef.GetComponent<GameManager>().RemoveDeadSnowmanIdFromSpawnPoints(snowmanState.SnowmanId);
         levelState.Canvas.GetComponent<CanvasManager>().UpdateWeaponUI();
-        levelState.PlayersSnowmanRef.Remove(gameObject);
+        levelState.PlayerList.Remove(gameObject);
         selectedGun.StopAudio();
         Destroy(gameObject);
-
-        //respawn
-        GameObject snowman = manager.SpawnSnowman(false, teamId, snowmanId, GUN_TYPE.PISTOL, new GUN_TYPE[] { GUN_TYPE.PISTOL });
-        levelState.PlayersSnowmanRef.Add(snowman);
     }
 }

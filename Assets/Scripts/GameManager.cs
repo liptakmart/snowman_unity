@@ -14,6 +14,10 @@ public class GameManager : MonoBehaviour
     public GameObject ProjectilePrefabRef;
     public GameObject CanvasRef;
 
+    public GameObject PickablePistol;
+    public GameObject PickableShotgun;
+    public GameObject PickableSmg;
+
     public AudioClip PistolShotAudio;
     public AudioClip PistolReloadAudio;
     public AudioClip PistolEmptyAudio;
@@ -26,28 +30,21 @@ public class GameManager : MonoBehaviour
     public AudioClip ShotgunReload;
     public AudioClip ShotgunEmptyAudio;
 
-    public List<GameObject> SpawnPoints;
+    public AudioClip GunCock;
+
+    public List<GameObject> SnowmanSpawnPoints;
+    public List<GameObject> GunSpawnPoints;
     public List<GameObject> PatrolPoints;
+
+    private void Awake()
+    {
+        InitState();
+    }
 
     void Start()
     {
-        InitState();
-        GameObject[] snowmenArr = SpawnSnowmen(
-            new int? [] { null, null/*, null, null*/ },
-            new bool[] { false, true, /*true, true*/ },
-            new int[] { 0, 1, /*1, 1 */},
-            new GUN_TYPE[] { GUN_TYPE.PISTOL, GUN_TYPE.PISTOL/*, GUN_TYPE.PISTOL, GUN_TYPE.PISTOL*/ },
-            new List<GUN_TYPE[]>()
-            {
-                new GUN_TYPE[] { GUN_TYPE.PISTOL, GUN_TYPE.SHOTGUN, GUN_TYPE.SMG},
-                new GUN_TYPE[] { GUN_TYPE.PISTOL},
-                //new GUN_TYPE[] { GUN_TYPE.PISTOL},
-                //new GUN_TYPE[] { GUN_TYPE.PISTOL},
-            });
-            
-        State._state.PlayersSnowmanRef.Add(snowmenArr[0]);
-        State._state.NpcSnowmanRef.Add(snowmenArr[1]);
-        Invoke("InitAfterStart", 0.5f); //TODO solve that spawn is made after everything is loaded etc, is this neccesarry?
+        //State._state.Canvas.GetComponent<CanvasManager>().UpdateWeaponUI();
+        //Invoke("InitAfterStart", 0.5f); //TODO solve that spawn is made after everything is loaded etc, is this neccesarry?
     }
 
     // Update is called once per frame
@@ -56,25 +53,31 @@ public class GameManager : MonoBehaviour
         
     }
 
-    private void InitAfterStart()
-    {
-        State._state.Canvas.GetComponent<CanvasManager>().UpdateWeaponUI();
-    }
+    //private void InitAfterStart()
+    //{
+    //    State._state.Canvas.GetComponent<CanvasManager>().UpdateWeaponUI();
+    //}
 
     /// <summary>
     /// Initialzies global state of level
     /// </summary>
     private void InitState()
     {
-        State._state.GameManagerRef = GameManagerRef;
+        //State._state.GameManagerRef = GameManagerRef;
         State._state.GameManagerScriptObj = this;
-        State._state.SpawnPoints = SpawnPoints;
+        State._state.SpawnManagerScriptObj = GetComponent<SpawnManager>();
+        State._state.SnowmanSpawnPoints = SnowmanSpawnPoints;
+        State._state.GunSpawnPoints = GunSpawnPoints;
         State._state.PatrolPoints = PatrolPoints;
         State._state.Canvas = CanvasRef;
 
         State._prefabs.PlayerSnowmanPrefabRef = PlayerSnowmanPrefabRef;
         State._prefabs.NpcSnowmanPrefabRef = NpcSnowmanPrefabRef;
         State._prefabs.ProjectilePrefabRef = ProjectilePrefabRef;
+
+        State._prefabs.PickablePistol = PickablePistol;
+        State._prefabs.PickableShotgun = PickableShotgun;
+        State._prefabs.PickableSmg = PickableSmg;
 
         State._prefabs.AudioPrefabs.PistolEmptyAudio = PistolEmptyAudio;
         State._prefabs.AudioPrefabs.PistolReloadAudio = PistolReloadAudio;
@@ -87,109 +90,8 @@ public class GameManager : MonoBehaviour
         State._prefabs.AudioPrefabs.SmgEmptyAudio = SmgEmptyAudio;
         State._prefabs.AudioPrefabs.SmgReloadAudio = SmgReloadAudio;
         State._prefabs.AudioPrefabs.SmgShotAudio = SmgShotAudio;
-    }
 
-    public GameObject[] SpawnSnowmen(int?[] snowmanId, bool[] isNpcArr, int[] teamIds, GUN_TYPE[] gunType, List<GUN_TYPE[]> ownedGuns)
-    {
-        List<GameObject> snowmenList = new List<GameObject>();
-        Vector3[] spawnPositions = GetSpawnPositions(isNpcArr.Length);
-        for (int i = 0; i < spawnPositions.Length; i++)
-        {
-            GameObject snowman = Instantiate(isNpcArr[i] ? NpcSnowmanPrefabRef : PlayerSnowmanPrefabRef, spawnPositions[i], Quaternion.identity);
-            SnowmanState snowmanState = snowman.GetComponent<SnowmanState>();
-            snowmanState.Initialize(snowmanId[i], isNpcArr[i], teamIds[i], gunType[i], ownedGuns[i]);
-            snowmenList.Add(snowman);
-        }
-        return snowmenList.ToArray();
-    }
-
-    public GameObject SpawnSnowman(bool isNpc, int teamId, int? snowmanId, GUN_TYPE gunType, GUN_TYPE[] ownedGuns)
-    {
-        GameObject snowman = Instantiate(isNpc ? NpcSnowmanPrefabRef : PlayerSnowmanPrefabRef, GetSpawnPosition(), Quaternion.identity);
-        SnowmanState snowmanState = snowman.GetComponent<SnowmanState>();
-        snowmanState.Initialize(snowmanId, isNpc, teamId, gunType, ownedGuns);
-        return snowman;
-    }
-
-    private Vector3 GetSpawnPosition()
-    {
-        if (SpawnPoints != null && SpawnPoints.Count > 0)
-        {
-            // Create a copy of the spawn points list
-            List<GameObject> shuffledSpawnPoints = new List<GameObject>(SpawnPoints);
-            // Shuffle the list
-            ShuffleList(shuffledSpawnPoints);
-
-            // Iterate over the shuffled list
-            foreach (var spawnPoint in shuffledSpawnPoints)
-            {
-                var sp = spawnPoint.GetComponent<SpawnPoint>();
-                if (sp.NoSnowmanInside())
-                {
-                    return sp.transform.position;
-                }
-            }
-            // All spawn points are occupied
-            // Handle as needed: wait and retry, throw exception, or return a default position
-            throw new Exception("No empty spawn points available");
-        }
-        throw new UnityException("Spawn points not initialized properly!");
-    }
-
-    private Vector3[] GetSpawnPositions(int numOfPos)
-    {
-        if (SpawnPoints != null && SpawnPoints.Count > 0)
-        {
-            List<Vector3> positions = new List<Vector3>();
-            // Create a copy of the spawn points list
-            List<GameObject> shuffledSpawnPoints = new List<GameObject>(SpawnPoints);
-            // Shuffle the list
-            ShuffleList(shuffledSpawnPoints);
-
-            // Iterate over the shuffled list
-            foreach (var spawnPoint in shuffledSpawnPoints)
-            {
-                var sp = spawnPoint.GetComponent<SpawnPoint>();
-                if (sp.NoSnowmanInside())
-                {
-                    positions.Add(sp.transform.position);
-                }
-
-                if (positions.Count == numOfPos)
-                {
-                    return positions.ToArray();
-                }
-            }
-
-            throw new Exception("No empty spawn points available");
-        }
-        throw new UnityException("Spawn points not initialized properly!");
-    }
-
-    // Helper method to shuffle a list
-    private void ShuffleList<T>(List<T> list)
-    {
-        int n = list.Count;
-        for (int i = n - 1; i > 0; i--)
-        {
-            int j = UnityEngine.Random.Range(0, i + 1);
-            T temp = list[i];
-            list[i] = list[j];
-            list[j] = temp;
-        }
-    }
-
-    /// <summary>
-    /// Removes dead snowman id from spawn points where he entered. Because he is no longer there, cause he is dead.
-    /// </summary>
-    /// <param name="deadSnowmanId"></param>
-    public void RemoveDeadSnowmanIdFromSpawnPoints(int deadSnowmanId)
-    {
-        foreach (GameObject item in SpawnPoints)
-        {
-            SpawnPoint script = item.GetComponent<SpawnPoint>();
-            script.TryRemoveSnowman(deadSnowmanId);
-        }
+        State._prefabs.AudioPrefabs.GunCock = GunCock;
     }
 }
 
@@ -204,6 +106,10 @@ public class Prefabs
     public GameObject PlayerSnowmanPrefabRef;
     public GameObject NpcSnowmanPrefabRef;
     public GameObject ProjectilePrefabRef;
+
+    public GameObject PickablePistol;
+    public GameObject PickableShotgun;
+    public GameObject PickableSmg;
 
     public AudioPrefabs AudioPrefabs = new AudioPrefabs();
 }
@@ -221,17 +127,22 @@ public class AudioPrefabs
     public AudioClip ShotgunShotAudio;
     public AudioClip ShotgunReload;
     public AudioClip ShotgunEmptyAudio;
+
+    public AudioClip GunCock;
 }
 
 public class LevelState
 {
-    public GameObject GameManagerRef;
+    //public GameObject GameManagerRef;
     public GameManager GameManagerScriptObj;
-    public List<GameObject> SpawnPoints = new List<GameObject>();
+    public SpawnManager SpawnManagerScriptObj;
+    public List<GameObject> SnowmanSpawnPoints = new List<GameObject>();
+    public List<GameObject> GunSpawnPoints = new List<GameObject>();
     public List<GameObject> PatrolPoints = new List<GameObject>();
-    public List<GameObject> PlayersSnowmanRef = new List<GameObject>();
-    public List<GameObject> NpcSnowmanRef = new List<GameObject>();
+    public List<GameObject> PlayerList = new List<GameObject>();
+    public List<GameObject> NpcList = new List<GameObject>();
     public GameObject Canvas;
+    public List<PlayerStat> PlayerStats = new List<PlayerStat>();
 }
 
 public static class Constants
@@ -240,7 +151,51 @@ public static class Constants
     public static readonly string TAG_NPC = "NpcTag";
     public static readonly Color TEAM_01_COLOR = Color.red;
     public static readonly Color TEAM_02_COLOR = Color.blue;
+    public static readonly Color TEAM_03_COLOR = Color.green;
+    public static readonly int MAX_NUM_OF_PICKABLE_GUNS_IN_LEVEL = 3;
+    /// <summary>
+    /// Delay until guns start to being spawned in level
+    /// </summary>
+    public static readonly float DELAY_TO_START_SPAWN_GUNS = 1f;
+    /// <summary>
+    /// Lower bound of time in seconds o rng generator for waiting till next gun is spawned
+    /// </summary>
+    public static readonly float DELAY_TO_SPAWN_GUNS_LOWER_BOUND = 5f;
+    /// <summary>
+    /// Upper bound of time in seconds o rng generator for waiting till next gun is spawned
+    /// </summary>
+    public static readonly float DELAY_TO_SPAWN_GUNS_UPPER_BOUND = 10f;
+    /// <summary>
+    /// Respawn time for each snowman in seconds.
+    /// </summary>
+    public static readonly float RESPAWN_TIME_SEC = 3f;
 }
+
+/// <summary>
+/// Persistent stats about player. SO when snowman dies, there are persistent data about player
+/// </summary>
+public class PlayerStat
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public int TeamId { get; set; }
+    public bool IsAlive { get; set; }
+    public bool WaitingToRespawn { get; set; }
+    public int KillsCount { get; set; }
+    public int DeathCount { get; set; }
+
+    public PlayerStat(int id, string name, int teamId, bool isAlive, int killsCount, int deathCount, bool waitingToRespawn)
+    {
+        Id = id;
+        Name = name;
+        TeamId = teamId;
+        IsAlive = isAlive;
+        KillsCount = killsCount;
+        DeathCount = deathCount;
+        WaitingToRespawn = waitingToRespawn;
+    }
+}
+
 
 /// <summary>
 /// Movement state of npc
@@ -378,6 +333,11 @@ public abstract class Gun : MonoBehaviour
     public bool CanReload()
     {
         return SpareAmmo > 0 && AmmoInMagazine < MagazineCapacity;
+    }
+
+    public virtual void AddAmmo()
+    {
+
     }
 
     public virtual void Fire(GameObject snowmanModel, SnowmanState snowman)
@@ -819,6 +779,11 @@ public abstract class Gun : MonoBehaviour
         AudioSourceRef.Stop();
     }
 
+    public void PlayCockAudio()
+    {
+        AudioSourceRef.PlayOneShot(State._prefabs.AudioPrefabs.GunCock);
+    }
+
     private IEnumerator ResetAudioPitchAfterDelay(float delay)
     {
         yield return new WaitForSeconds(delay);
@@ -842,11 +807,19 @@ public class Pistol : Gun
         ReloadTimeSec = 1.5f;
         FireDelayInSec = 0.2f;
         MaxRange = 50f;
-        YBaseDispersion = 7f;
-        ZBaseDispersion = 5f;
+        YBaseDispersion = 5f;
+        ZBaseDispersion = 3f;
         DispersionIncreaseByShot = 0.1f;
         DispersionDecayRate= 0.2f;
         ProjectileSize = 5f; 
+    }
+
+    /// <summary>
+    /// Adds default ammo
+    /// </summary>
+    public override void AddAmmo()
+    {
+        SpareAmmo += 48;
     }
 }
 
@@ -866,11 +839,19 @@ public class Shotgun : Gun
         ReloadTimeSec = 7f;
         FireDelayInSec = 1.5f;
         MaxRange = 12.5f;
-        YBaseDispersion = 7f;
-        ZBaseDispersion = 15f;
+        YBaseDispersion = 5f;
+        ZBaseDispersion = 9f;
         DispersionIncreaseByShot = 1f;
         DispersionDecayRate = 0.2f;
         ProjectileSize = 1f;
+    }
+
+    /// <summary>
+    /// Adds default ammo
+    /// </summary>
+    public override void AddAmmo()
+    {
+        SpareAmmo += 6;
     }
 }
 
@@ -890,10 +871,18 @@ public class Smg : Gun
         ReloadTimeSec = 6f;
         FireDelayInSec = 0.05f;
         MaxRange = 50;
-        YBaseDispersion = 7f;
-        ZBaseDispersion = 5f;
+        YBaseDispersion = 5f;
+        ZBaseDispersion = 3f;
         DispersionIncreaseByShot = 0.1f;
         DispersionDecayRate = 0.15f;
         ProjectileSize = 5f;
+    }
+
+    /// <summary>
+    /// Adds default ammo
+    /// </summary>
+    public override void AddAmmo()
+    {
+        SpareAmmo += 30;
     }
 }

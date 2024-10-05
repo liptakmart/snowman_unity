@@ -13,10 +13,13 @@ public class NpcBehaviour : MonoBehaviour
     private Gun selectedGun;
     private List<Gun> ownedGuns;
     private GameObject snowmanModel;
-    private GameManager manager;
+    private GameManager gameManager;
     private int currentPatrolIndex;
     private NPC_MOVEMENT_STATE npcBehaviorState;
     private List<Vector3> patrolPoints;
+    private SpawnManager spawnManager;
+
+    public Gun SelectedGun { get { return this.selectedGun; } }
 
     // Vision Parameters
     [Header("Vision Parameters")]
@@ -56,6 +59,12 @@ public class NpcBehaviour : MonoBehaviour
     [Tooltip("Rotation speed when searching for the player.")]
     public float searchTurnSpeed = 60f;
 
+    //[Header("Engagement Parameters")]
+    //[Tooltip("Delay before the NPC engages the target after detection (in seconds).")]
+    public float delayToEngage = 0.7f;
+
+    private Coroutine engageCoroutine;
+
     // Timers and state tracking
     private float timeSinceLastSeen = 0f;
     private Transform visibleTarget;
@@ -72,10 +81,11 @@ public class NpcBehaviour : MonoBehaviour
         ownedGuns = snowmanState.OwnedGuns;
         levelState = State._state;
         snowmanModel = snowmanState.snowmanModel;
-        manager = levelState.GameManagerScriptObj;
+        gameManager = levelState.GameManagerScriptObj;
         currentPatrolIndex = 0;
         npcBehaviorState = NPC_MOVEMENT_STATE.PATROL;
         patrolPoints = levelState.PatrolPoints.Select(i => i.transform.position).ToList();
+        spawnManager = levelState.SpawnManagerScriptObj;
 
         agent.speed = 1f;
         SetDestination();
@@ -106,7 +116,7 @@ public class NpcBehaviour : MonoBehaviour
 
     private void SubscribeToEvents()
     {
-        snowmanState.OnMyKill += HandleOnMyKill;
+        snowmanState.OnIKilledSomeone += HandleOnMyKill;
         //gun.OnReloadStarted += HandleReloadStarted;
         //gun.OnReloadFinished += HandleReloadFinished;
         //gun.OnReloadCanceled += HandleReloadCanceled;
@@ -117,7 +127,7 @@ public class NpcBehaviour : MonoBehaviour
 
     private void UnsubscribeFromEvents()
     {
-        snowmanState.OnMyKill -= HandleOnMyKill;
+        snowmanState.OnIKilledSomeone -= HandleOnMyKill;
         //gun.OnReloadStarted -= HandleReloadStarted;
         //gun.OnReloadFinished -= HandleReloadFinished;
         //gun.OnReloadCanceled -= HandleReloadCanceled;
@@ -130,6 +140,11 @@ public class NpcBehaviour : MonoBehaviour
     {
         Debug.Log("Killed enemy:" + enemyId);
         ResetNpcState();
+    }
+    public void OnGunPicked(GUN_TYPE gunType)
+    {
+        snowmanState.AddGunOrAmmo(gunType);
+        //Debug.Log("gun picked");
     }
 
     // Coroutine for periodic vision checks
@@ -176,6 +191,28 @@ public class NpcBehaviour : MonoBehaviour
         }
     }
 
+    private IEnumerator EngageTargetWithDelay()
+    {
+        Debug.Log("delay:" + delayToEngage);
+        // Wait for the specified delay
+        yield return new WaitForSeconds(delayToEngage);
+        
+        // Check again if the target is still visible before engaging
+        if (visibleTarget != null)
+        {
+            if (visibleTarget != null)
+            {
+                npcBehaviorState = NPC_MOVEMENT_STATE.ATTACK;
+                agent.isStopped = true; // Stop moving
+                agent.ResetPath();
+                //Debug.Log($"{gameObject.name} is now in ATTACK state.");
+            }
+        }
+
+        // Reset the coroutine tracker
+        engageCoroutine = null;
+    }
+
     // Method to find visible targets
     private bool FindVisibleTarget()
     {
@@ -200,7 +237,7 @@ public class NpcBehaviour : MonoBehaviour
 
         foreach (Collider targetCollider in targetsInRange)
         {
-            if (targetCollider.gameObject.CompareTag(Constants.TAG_PLAYER))
+            if (targetCollider.gameObject.GetComponent<SnowmanState>().TeamId != snowmanState.TeamId)
             {
                 Transform target = targetCollider.transform;
 
@@ -247,24 +284,18 @@ public class NpcBehaviour : MonoBehaviour
         {
             visibleTarget = closestTarget;
             lastKnownPosition = visibleTarget.position;
-            EngageTarget();
+
+            // Start the engagement delay coroutine if not already running
+            if (engageCoroutine == null)
+            {
+                engageCoroutine = StartCoroutine(EngageTargetWithDelay());
+            }
+
             targetDetected = true;
             //Debug.Log($"{gameObject.name} detected and is engaging {visibleTarget.name}");
         }
 
         return targetDetected;
-    }
-
-    // Method to handle engagement when a target is detected
-    private void EngageTarget()
-    {
-        if (visibleTarget != null)
-        {
-            npcBehaviorState = NPC_MOVEMENT_STATE.ATTACK;
-            agent.isStopped = true; // Stop moving
-            agent.ResetPath();
-            //Debug.Log($"{gameObject.name} is now in ATTACK state.");
-        }
     }
 
     // Handle behavior in PATROL state
@@ -330,6 +361,10 @@ public class NpcBehaviour : MonoBehaviour
         }
         else
         {
+            //reset
+            StopCoroutine(engageCoroutine);
+            engageCoroutine = null;
+
             // Lost sight of the player, switch to FOLLOW state
             npcBehaviorState = NPC_MOVEMENT_STATE.FOLLOW;
             agent.isStopped = false;
@@ -361,8 +396,6 @@ public class NpcBehaviour : MonoBehaviour
     private void PerformAttack()
     {
         selectedGun.Fire(snowmanModel, snowmanState);
-        //selectedGun
-        // Implement your attack logic here (e.g., shooting)
     }
 
     // Method to set destination for patrol
@@ -374,9 +407,11 @@ public class NpcBehaviour : MonoBehaviour
         agent.isStopped = false;
         agent.SetDestination(patrolPoints[currentPatrolIndex]);
     }
-
     public void Die()
     {
+        //respawn
+        spawnManager.RespawnSnowman(true, snowmanState.SnowmanId, snowmanState.TeamId);
+
         Collider col = GetComponent<Collider>();
         Rigidbody rb = GetComponent<Rigidbody>();
         if (col != null && rb != null)
@@ -384,20 +419,12 @@ public class NpcBehaviour : MonoBehaviour
             Destroy(col);
             Destroy(rb);
         }
-
-        int snowmanId = snowmanState.SnowmanId;
-        int teamId = snowmanState.TeamId;
         snowmanState.IsAlive = false;
 
-        levelState.GameManagerRef.GetComponent<GameManager>().RemoveDeadSnowmanIdFromSpawnPoints(snowmanState.SnowmanId);
         levelState.Canvas.GetComponent<CanvasManager>().UpdateWeaponUI();
-        levelState.PlayersSnowmanRef.Remove(gameObject);
+        levelState.NpcList.Remove(gameObject);
         //StopAudio(); //TODO
         Destroy(gameObject);
-
-        //respawn
-        GameObject snowman = manager.SpawnSnowman(true, teamId, snowmanId, GUN_TYPE.PISTOL, new GUN_TYPE[] { GUN_TYPE.PISTOL });
-        levelState.NpcSnowmanRef.Add(snowman);
     }
 
     private void ResetNpcState()

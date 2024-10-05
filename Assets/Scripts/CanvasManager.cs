@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.WindowsRuntime;
 using TMPro;
 using UnityEngine;
 
@@ -21,12 +22,16 @@ public class CanvasManager : MonoBehaviour
 
     public void UpdateWeaponUI()
     {
+        if (State._state.PlayerList.Count == 0)
+        {
+            return;
+        }
         // Get the TextMeshProUGUI component from the GameObject
         TextMeshProUGUI ammoTextComponent = ammoText.GetComponent<TextMeshProUGUI>();
 
         // Set the text
         //TODO rework, it will only work if first spawned is player, not npc
-        SnowmanState sc = State._state.PlayersSnowmanRef[0].GetComponent<SnowmanState>();
+        SnowmanState sc = State._state.PlayerList[0].GetComponent<SnowmanState>();
         Gun gun = sc.SelectedGun;
         ammoTextComponent.text = $"{gun.Name} {gun.AmmoInMagazine}/{gun.SpareAmmo}";
     }

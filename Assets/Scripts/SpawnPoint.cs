@@ -7,9 +7,6 @@ public class SpawnPoint : MonoBehaviour
     public Color gizmoColor = Color.red; // Color of the Gizmo
     public float gizmoRadius = 1.0f;     // Radius of the Gizmo
 
-    // List of objects currently inside the trigger
-    private HashSet<int> snowmanIdsInside = new HashSet<int>();
-
     // This method is called by Unity in the editor to draw gizmos in the Scene view
     void OnDrawGizmos()
     {
@@ -24,49 +21,55 @@ public class SpawnPoint : MonoBehaviour
         Gizmos.DrawSphere(transform.position, gizmoRadius);
     }
 
-    private bool IsSnowman(string tag)
+    private bool IsSnowman(GameObject go)
     {
-        if (tag == Constants.TAG_PLAYER || tag == Constants.TAG_NPC)
+        if (go.tag == Constants.TAG_PLAYER || go.tag == Constants.TAG_NPC)
         {
             return true;
         }
         return false;
     }
 
-    // Called when another object enters the trigger
-    void OnTriggerEnter(Collider other)
+    private List<GameObject> objectsInside = new List<GameObject>();
+    public void AddObjectInside(GameObject go)
     {
-        if (IsSnowman(other.gameObject.tag) && !snowmanIdsInside.Contains(other.gameObject.GetComponent<SnowmanState>().SnowmanId))
+        if (!objectsInside.Contains(go))
         {
-            snowmanIdsInside.Add(other.gameObject.GetComponent<SnowmanState>().SnowmanId);
+            objectsInside.Add(go);
         }
     }
 
-    // Called when another object exits the trigger
-    void OnTriggerExit(Collider other)
+    public GameObject GetIfSomeoneInside()
     {
-        if (IsSnowman(other.gameObject.tag) && snowmanIdsInside.Contains(other.gameObject.GetComponent<SnowmanState>().SnowmanId))
+        // Clean up destroyed objects before returning
+        objectsInside.RemoveAll(obj => obj == null);
+        if (objectsInside.Count > 0)
         {
-            snowmanIdsInside.Remove(other.gameObject.GetComponent<SnowmanState>().SnowmanId);
+            return objectsInside[0];
+        }
+        return null;
+    }
+
+    public List<GameObject> GetAllSnowmenInside()
+    {
+        // Clean up destroyed objects before returning
+        objectsInside.RemoveAll(obj => obj == null);
+        return new List<GameObject>(objectsInside);
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (IsSnowman(other.gameObject) && !objectsInside.Contains(other.gameObject))
+        {
+            objectsInside.Add(other.gameObject);
         }
     }
 
-    /// <summary>
-    /// Tries to remove snowman id from list of inside. For example if snowman is dead.
-    /// </summary>
-    /// <param name="snowmanId"></param>
-    public void TryRemoveSnowman(int snowmanId)
+    private void OnTriggerExit(Collider other)
     {
-        if (snowmanIdsInside.Contains(snowmanId))
+        if (objectsInside.Contains(other.gameObject))
         {
-            snowmanIdsInside.Remove(snowmanId);
+            objectsInside.Remove(other.gameObject);
         }
-        
-    }
-
-    // Optional: Method to check if the spawn point is free
-    public bool NoSnowmanInside()
-    {
-        return snowmanIdsInside.Count == 0;
     }
 }

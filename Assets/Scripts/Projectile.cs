@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public class Projectile : MonoBehaviour
@@ -18,7 +20,6 @@ public class Projectile : MonoBehaviour
     /// Reference to snowman who fired this projectile, may be null if already killed
     /// </summary>
     public SnowmanState FiredBy;
-
     /// <summary>
     /// Point of origin to compare distance it traveled
     /// </summary>
@@ -54,6 +55,7 @@ public class Projectile : MonoBehaviour
     {
         if (Vector3.Distance(transform.position, OriginPoint) >= MaxRange)
         {
+            //Debug.Log("Too far");
             Destroy(transform.gameObject);
         }
     }
@@ -86,7 +88,23 @@ public class Projectile : MonoBehaviour
             }
             else
             {
-                FiredBy.InvokeOnMyKill(FiredBySnowmanId);
+                if (FiredBy != null)
+                {
+                    //snowman who fired projectile is alive
+                    FiredBy.InvokeIKilledSomeone(FiredBySnowmanId);
+
+                }
+                PlayerStat attacker = State._state.PlayerStats.FirstOrDefault(x => x.Id == FiredBySnowmanId);
+                PlayerStat victim = State._state.PlayerStats.FirstOrDefault(x => x.Id == snowmanState.SnowmanId);
+                if (attacker != null)
+                {
+                    attacker.KillsCount++;
+                }
+
+                if (victim != null)
+                {
+                    victim.DeathCount++;
+                }
 
                 //disperse enemy corpse
                 var modelParent = snowmanState.snowmanModel;
@@ -122,7 +140,7 @@ public class Projectile : MonoBehaviour
                 if (snowmanState.IsNpc)
                 {
                     var npcBehaviour = collision.gameObject.GetComponent<NpcBehaviour>();
-                    npcBehaviour.Die();
+                     npcBehaviour.Die();
                 }
                 else
                 {
@@ -134,6 +152,4 @@ public class Projectile : MonoBehaviour
         IsLethal = false;
         Destroy(transform.gameObject, 3f); //TODO reconsider
     }
-
-
 }

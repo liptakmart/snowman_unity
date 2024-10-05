@@ -114,6 +114,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   IsLethal: 0
   FiredBySnowmanId: 0
+  FiredBy: {fileID: 0}
   OriginPoint: {x: 0, y: 0, z: 0}
   MaxRange: 0
 --- !u!54 &-4612833197343335467
