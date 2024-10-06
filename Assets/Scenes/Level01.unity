@@ -185,6 +185,7 @@ MonoBehaviour:
   ShotgunShotAudio: {fileID: 8300000, guid: 58e1a3b648997ce43b2c3b146e3366a9, type: 3}
   ShotgunReload: {fileID: 8300000, guid: c93995b8515b9b4438ae5dde7fba0628, type: 3}
   ShotgunEmptyAudio: {fileID: 8300000, guid: 7c27fe51a4262fb429608015d54db9c3, type: 3}
+  EnviromentCamera: {fileID: 963194225}
   GunCock: {fileID: 8300000, guid: 02c518e37ce71464cb4a1d190d6235d1, type: 3}
   SnowmanSpawnPoints:
   - {fileID: 8743183836161900165}

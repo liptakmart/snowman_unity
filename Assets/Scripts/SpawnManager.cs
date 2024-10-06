@@ -36,13 +36,26 @@ public class SpawnManager : MonoBehaviour
     private void InitialSnowmenSpawn()
     {
         var player1 = SpawnSnowman(false, 0, null, GUN_TYPE.PISTOL, new GUN_TYPE[] { GUN_TYPE.PISTOL, GUN_TYPE.SHOTGUN, GUN_TYPE.SMG });
-        State._state.PlayerStats.Add(new PlayerStat(player1.GetComponent<SnowmanState>().SnowmanId, "Player1", 0, true, 0, 0, 0, false));
+        levelState.PlayerStats.Add(new PlayerStat(player1.GetComponent<SnowmanState>().SnowmanId, "Player1", 0, true, 0, 0, 0, false));
 
         var player2 = SpawnSnowman(false, 1, null, GUN_TYPE.PISTOL, new GUN_TYPE[] { GUN_TYPE.PISTOL, GUN_TYPE.SHOTGUN, GUN_TYPE.SMG });
-        State._state.PlayerStats.Add(new PlayerStat(player2.GetComponent<SnowmanState>().SnowmanId, "Player2", 1, true, 1, 0, 0, false));
+        levelState.PlayerStats.Add(new PlayerStat(player2.GetComponent<SnowmanState>().SnowmanId, "Player2", 1, true, 1, 0, 0, false));
 
         var npc02 = SpawnSnowman(true, 2, null, GUN_TYPE.PISTOL, new GUN_TYPE[] { GUN_TYPE.PISTOL });
         var npc03 = SpawnSnowman(true, 2, null, GUN_TYPE.PISTOL, new GUN_TYPE[] { GUN_TYPE.PISTOL });
+
+        //handle duplicate audio listener
+        if (levelState.PlayerStats.Count > 1)
+        {
+            foreach (var player in levelState.PlayerList)
+            {
+                GameObject playerCamera = player.transform.Find("PlayerCamera").gameObject;
+                AudioListener listner = playerCamera.GetComponent<AudioListener>();
+                listner.enabled = false;
+                playerCamera.SetActive(false);
+            }
+            levelState.EnviromentCamera.AddComponent<AudioListener>();
+        }
     }
 
     public void RespawnSnowman(bool isNpc, int snowmanId, int teamId)
@@ -75,11 +88,11 @@ public class SpawnManager : MonoBehaviour
         snowmanState.Initialize(snowmanId, isNpc, teamId, gunType, ownedGuns);
         if (isNpc)
         {
-            State._state.NpcList.Add(snowman);
+            levelState.NpcList.Add(snowman);
         }
         else
         {
-            State._state.PlayerList.Add(snowman);
+            levelState.PlayerList.Add(snowman);
         }
         return snowman;
     }

@@ -30,6 +30,8 @@ public class GameManager : MonoBehaviour
     public AudioClip ShotgunReload;
     public AudioClip ShotgunEmptyAudio;
 
+    public GameObject EnviromentCamera;
+
     public AudioClip GunCock;
 
     public List<GameObject> SnowmanSpawnPoints;
@@ -70,6 +72,7 @@ public class GameManager : MonoBehaviour
         State._state.GunSpawnPoints = GunSpawnPoints;
         State._state.PatrolPoints = PatrolPoints;
         State._state.Canvas = CanvasRef;
+        State._state.EnviromentCamera = EnviromentCamera;
 
         State._prefabs.PlayerSnowmanPrefabRef = PlayerSnowmanPrefabRef;
         State._prefabs.NpcSnowmanPrefabRef = NpcSnowmanPrefabRef;
@@ -142,6 +145,7 @@ public class LevelState
     public List<GameObject> PlayerList = new List<GameObject>();
     public List<GameObject> NpcList = new List<GameObject>();
     public GameObject Canvas;
+    public GameObject EnviromentCamera;
     public List<PlayerStat> PlayerStats = new List<PlayerStat>();
 }
 

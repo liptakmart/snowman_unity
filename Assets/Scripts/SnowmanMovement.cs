@@ -7,18 +7,12 @@ public class SnowmanMovement : MonoBehaviour
 {
     public float movementSpeed = 2f; // Maximum speed the character can reach
     public GameObject snowmanModel;
-    public GameObject playerCamera;
     private SnowmanState snowmanState;
     private Vector3 movement; // Movement direction
 
     private void Start()
     {
         snowmanState = GetComponent<SnowmanState>();
-        if (State._state.PlayerStats.Count > 1)
-        {
-            //if there are more players we use envirometn camera
-            playerCamera.SetActive(false);
-        }
     }
     void Update()
     {
