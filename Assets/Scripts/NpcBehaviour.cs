@@ -28,7 +28,7 @@ public class NpcBehaviour : MonoBehaviour
 
     [Tooltip("The angle (in degrees) that defines the NPC's field of view.")]
     [Range(0, 360)]
-    public float fieldOfView = 120f;
+    public float fieldOfView = 170f;
 
     [Tooltip("Layer mask to specify which layers are considered as potential targets.")]
     public LayerMask targetMask;

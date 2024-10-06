@@ -20,11 +20,6 @@ public class SnowmanState : MonoBehaviour
      * END
      */
 
-    public int AssignNewSnowmanId()
-    {
-        return _snowmanIdCounter++;
-    }
-
     private int _snowmanId;
     public int SnowmanId
     {
@@ -49,9 +44,22 @@ public class SnowmanState : MonoBehaviour
         get; set;
     }
 
+    public int PlayerNumber
+    {
+        get
+        {
+            return State._state.PlayerStats.FirstOrDefault(x => x.Id == _snowmanId).PlayerNumber;
+        }
+    }
+
     public List<Gun> OwnedGuns
     {
         get; set;
+    }
+
+    public int GetPlayerNumber()
+    {
+        return State._state.PlayerStats.FirstOrDefault(x => x.Id == SnowmanId).PlayerNumber;
     }
 
     /// <summary>
@@ -77,7 +85,7 @@ public class SnowmanState : MonoBehaviour
     {
         if (snowmanId == null)
         {
-            _snowmanId = AssignNewSnowmanId();
+            _snowmanId = _snowmanIdCounter++;
         }
         else
         {
@@ -89,10 +97,10 @@ public class SnowmanState : MonoBehaviour
         OwnedGuns = new List<Gun>();
 
         //init player state if doesnt exist yet
-        if (!IsNpc && State._state.PlayerStats.FirstOrDefault(x => x.Id == SnowmanId) == null)
-        {
-            State._state.PlayerStats.Add(new PlayerStat(SnowmanId, "TODO", TeamId, false, 0, 0, false));
-        }
+        //if (!IsNpc && State._state.PlayerStats.FirstOrDefault(x => x.Id == SnowmanId) == null)
+        //{
+        //    State._state.PlayerStats.Add(new PlayerStat(SnowmanId, "TODO", TeamId, false, 0, 0, false));
+        //}
 
         foreach (var gun in ownedGuns)
         {
@@ -120,15 +128,15 @@ public class SnowmanState : MonoBehaviour
         GameObject cylinderGo = snowmanModel.transform.Find("Cylinder").gameObject;
         Renderer renderer = cylinderGo.GetComponent<Renderer>();
         Material newMaterial = new Material(renderer.material);
-        if (teamId == 1)
+        if (teamId == 0)
         {
             newMaterial.color = Constants.TEAM_01_COLOR;
         }
-        else if (teamId == 2 )
+        else if (teamId == 1)
         {
             newMaterial.color = Constants.TEAM_02_COLOR;
         }
-        else if (teamId == 3)
+        else if (teamId == 2)
         {
             newMaterial.color = Constants.TEAM_03_COLOR;
         }

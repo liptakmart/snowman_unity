@@ -199,7 +199,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   visionRange: 50
-  fieldOfView: 120
+  fieldOfView: 170
   targetMask:
     serializedVersion: 2
     m_Bits: 64
@@ -208,6 +208,10 @@ MonoBehaviour:
     m_Bits: 256
   visionCheckInterval: 0.2
   memoryDuration: 5
+  minDistanceToPlayer: 2
+  rotationSpeed: 5
+  searchTurnSpeed: 60
+  delayToEngage: 0.7
 --- !u!114 &8339100880509202342
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -224,15 +228,6 @@ MonoBehaviour:
   pistolGo: {fileID: 1286157230474176334}
   shotgunGo: {fileID: 7300442391756478637}
   smgGo: {fileID: 7300442392118608294}
-  pistolShotAudio: {fileID: 8300000, guid: ef6c68ac76bb55a44a98cfab80c47255, type: 3}
-  pistolReloadAudio: {fileID: 8300000, guid: c93995b8515b9b4438ae5dde7fba0628, type: 3}
-  pistolEmptyAudio: {fileID: 8300000, guid: 2d14f144f7dfc664b984fb90976ffc04, type: 3}
-  smgShotAudio: {fileID: 8300000, guid: 585e8c797b612b748adffc27e5fb6ad8, type: 3}
-  smgReloadAudio: {fileID: 8300000, guid: 92063cb46d88e20419ab4bd3e7e45037, type: 3}
-  smgEmptyAudio: {fileID: 8300000, guid: 68b2f13ccd3e3384c934eb350a5dee4f, type: 3}
-  shotgunShotAudio: {fileID: 8300000, guid: 58e1a3b648997ce43b2c3b146e3366a9, type: 3}
-  shotgunReload: {fileID: 8300000, guid: c93995b8515b9b4438ae5dde7fba0628, type: 3}
-  shotgunEmptyAudio: {fileID: 8300000, guid: 7c27fe51a4262fb429608015d54db9c3, type: 3}
 --- !u!1 &2096479495580940943
 GameObject:
   m_ObjectHideFlags: 0

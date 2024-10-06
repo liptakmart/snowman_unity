@@ -8,13 +8,15 @@ public class SnowmanMovement : MonoBehaviour
     public float movementSpeed = 2f; // Maximum speed the character can reach
     public GameObject snowmanModel;
     public GameObject playerCamera;
+    private SnowmanState snowmanState;
     private Vector3 movement; // Movement direction
 
     private void Start()
     {
-        if (GetComponent<SnowmanState>().IsNpc)
+        snowmanState = GetComponent<SnowmanState>();
+        if (State._state.PlayerStats.Count > 1)
         {
-            //npc doesnt need camera
+            //if there are more players we use envirometn camera
             playerCamera.SetActive(false);
         }
     }
@@ -26,12 +28,22 @@ public class SnowmanMovement : MonoBehaviour
 
     void MoveCharacter()
     {
-        var snowmanState = gameObject.GetComponent<SnowmanState>();
-        if (snowmanState.IsAlive && !snowmanState.IsNpc)
+        if (snowmanState.IsAlive)
         {
-            // Get input for horizontal (A/D or Left/Right) and vertical (W/S or Up/Down) axes
-            float moveHorizontal = Input.GetAxis("Horizontal");
-            float moveVertical = Input.GetAxis("Vertical");
+            float moveHorizontal = float.MinValue;
+            float moveVertical = float.MinValue;
+
+            int playerNumber = snowmanState.GetPlayerNumber();
+            if (playerNumber == 0)
+            {
+                moveHorizontal = Input.GetAxis("Horizontal1");
+                moveVertical = Input.GetAxis("Vertical1");
+            }
+            else if (playerNumber == 1)
+            {
+                moveHorizontal = Input.GetAxis("Horizontal2");
+                moveVertical = Input.GetAxis("Vertical2");
+            }
 
             // Calculate the movement vector based on input
             movement = new Vector3(moveHorizontal, 0f, moveVertical).normalized;

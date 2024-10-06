@@ -181,10 +181,11 @@ public class PlayerStat
     public int TeamId { get; set; }
     public bool IsAlive { get; set; }
     public bool WaitingToRespawn { get; set; }
+    public int PlayerNumber { get; set; }
     public int KillsCount { get; set; }
     public int DeathCount { get; set; }
 
-    public PlayerStat(int id, string name, int teamId, bool isAlive, int killsCount, int deathCount, bool waitingToRespawn)
+    public PlayerStat(int id, string name, int teamId, bool isAlive, int playerNumber, int killsCount, int deathCount, bool waitingToRespawn)
     {
         Id = id;
         Name = name;
@@ -192,6 +193,7 @@ public class PlayerStat
         IsAlive = isAlive;
         KillsCount = killsCount;
         DeathCount = deathCount;
+        PlayerNumber = playerNumber;
         WaitingToRespawn = waitingToRespawn;
     }
 }

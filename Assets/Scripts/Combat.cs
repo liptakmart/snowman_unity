@@ -139,10 +139,32 @@ public class Combat : MonoBehaviour
         levelState.Canvas.GetComponent<CanvasManager>().UpdateWeaponUI();
     }
 
+    private bool CanThisPlayerFire(bool automaticGun)
+    {
+        int playerNum = snowmanState.PlayerNumber;
+        if (automaticGun)
+        {
+            if (playerNum == 0 && Input.GetKey(KeyCode.Space) || playerNum == 1 && Input.GetKey(KeyCode.RightControl))
+            {
+                return true;
+            }
+        }
+        else
+        {
+            if (playerNum == 0 && Input.GetKeyUp(KeyCode.Space) || playerNum == 1 && Input.GetKeyUp(KeyCode.RightControl))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private void OnFireClick()
     {
         bool clickedFire = false;
-        if (!selectedGun.IsAutomatic && Input.GetKeyUp(KeyCode.Space))
+        
+        if (!selectedGun.IsAutomatic && CanThisPlayerFire(false))
         {
             clickedFire = true;
             if (!selectedGun.IsEmptyMagazine())
@@ -150,7 +172,7 @@ public class Combat : MonoBehaviour
                 selectedGun.Fire(snowmanModel, snowmanState);
             }
         }
-        else if (selectedGun.IsAutomatic && Input.GetKey(KeyCode.Space))
+        else if (selectedGun.IsAutomatic && CanThisPlayerFire(true))
         {
             clickedFire = true;
             if (!selectedGun.IsEmptyMagazine())
@@ -165,9 +187,23 @@ public class Combat : MonoBehaviour
         }
     }
 
+    private bool OnChangeWeapon()
+    {
+        int playerNum = snowmanState.PlayerNumber;
+        if (playerNum == 0 && Input.GetKeyUp(KeyCode.Q))
+        {
+            return true;
+        }
+        else if (playerNum == 1 && Input.GetKeyUp(KeyCode.RightShift))
+        {
+            return true;
+        }
+        return false;
+    }
+
     private void OnWeaponChange()
     {
-        if (Input.GetKeyUp(KeyCode.Q))
+        if (OnChangeWeapon())
         {
             if (ownedGuns.Count == 1)
             {
@@ -205,12 +241,26 @@ public class Combat : MonoBehaviour
         }
     }
 
+    private bool OnReload()
+    {
+        int playerNum = snowmanState.PlayerNumber;
+        if (playerNum == 0 && Input.GetKeyUp(KeyCode.R))
+        {
+            return true;
+        }
+        else if (playerNum == 1 && Input.GetKeyUp(KeyCode.RightAlt))
+        {
+            return true;
+        }
+        return false;
+    }
+
     /// <summary>
     /// On reload key clicked
     /// </summary>
     private void OnGunReload()
     {
-        if (!selectedGun.IsReloading() && selectedGun.SpareAmmo > 0 && Input.GetKeyUp(KeyCode.R))
+        if (!selectedGun.IsReloading() && selectedGun.SpareAmmo > 0 && OnReload())
         {
             if (!selectedGun.IsMagazineFull() && selectedGun.CanReload())
             {
