@@ -41,18 +41,20 @@ public class SpawnManager : MonoBehaviour
         var player2 = SpawnSnowman(false, 1, null, GUN_TYPE.PISTOL, new GUN_TYPE[] { GUN_TYPE.PISTOL, GUN_TYPE.SHOTGUN, GUN_TYPE.SMG });
         levelState.PlayerStats.Add(new PlayerStat(player2.GetComponent<SnowmanState>().SnowmanId, "Player2", 1, true, 1, 0, 0, false));
 
-        var npc02 = SpawnSnowman(true, 2, null, GUN_TYPE.PISTOL, new GUN_TYPE[] { GUN_TYPE.PISTOL });
-        var npc03 = SpawnSnowman(true, 2, null, GUN_TYPE.PISTOL, new GUN_TYPE[] { GUN_TYPE.PISTOL });
+        //var npc02 = SpawnSnowman(true, 2, null, GUN_TYPE.PISTOL, new GUN_TYPE[] { GUN_TYPE.PISTOL });
+        //var npc03 = SpawnSnowman(true, 2, null, GUN_TYPE.PISTOL, new GUN_TYPE[] { GUN_TYPE.PISTOL });
 
         //handle duplicate audio listener
         if (levelState.PlayerStats.Count > 1)
         {
             foreach (var player in levelState.PlayerList)
             {
-                GameObject playerCamera = player.transform.Find("PlayerCamera").gameObject;
-                AudioListener listner = playerCamera.GetComponent<AudioListener>();
+                GameObject playerCameraGo = player.transform.Find("PlayerCamera").gameObject;
+                AudioListener listner = playerCameraGo.GetComponent<AudioListener>();
+                Camera camera = playerCameraGo.GetComponent<Camera>();
                 listner.enabled = false;
-                playerCamera.SetActive(false);
+                camera.enabled = false;
+                playerCameraGo.SetActive(false);
             }
             levelState.EnviromentCamera.AddComponent<AudioListener>();
         }
