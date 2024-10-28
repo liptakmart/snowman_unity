@@ -447,7 +447,7 @@ public abstract class Gun : MonoBehaviour
     {
         List<float> widthAngleOffsets = new List<float>();
         float yLowerBound = -6.0f;
-        float yStep = 0.50f;
+        float yStep = 0.75f;
         for (float i = yLowerBound; i <= yLowerBound * -1; i += yStep)
         {
             widthAngleOffsets.Add(i);
@@ -455,7 +455,7 @@ public abstract class Gun : MonoBehaviour
 
         List<float> heightAnglesOffsets = new List<float>();
         float xLowerBound = -6f;
-        float xStep = 2f;
+        float xStep = 3f;
         for (float i = xLowerBound; i <= xLowerBound * -1; i += xStep)
         {
             heightAnglesOffsets.Add(i);

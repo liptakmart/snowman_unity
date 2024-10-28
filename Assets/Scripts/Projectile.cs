@@ -48,14 +48,13 @@ public class Projectile : MonoBehaviour
         //ignore self
         Physics.IgnoreLayerCollision(projectileLayer, projectileLayer);
 
-        Destroy(this.gameObject, 10f); //TODO reconsider
+        Destroy(this.gameObject, 3f);
     }
 
     private void Update()
     {
         if (Vector3.Distance(transform.position, OriginPoint) >= MaxRange)
         {
-            //Debug.Log("Too far");
             Destroy(transform.gameObject);
         }
     }
@@ -150,6 +149,7 @@ public class Projectile : MonoBehaviour
             }
         }
         IsLethal = false;
-        Destroy(transform.gameObject, 3f); //TODO reconsider
+        Destroy(gameObject.GetComponent<TrailRenderer>());
+        //Destroy(transform.gameObject, 3f); //TODO reconsider
     }
 }

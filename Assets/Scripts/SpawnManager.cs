@@ -38,13 +38,20 @@ public class SpawnManager : MonoBehaviour
         var player1 = SpawnSnowman(false, 0, null, GUN_TYPE.PISTOL, new GUN_TYPE[] { GUN_TYPE.PISTOL, GUN_TYPE.SHOTGUN, GUN_TYPE.SMG });
         levelState.PlayerStats.Add(new PlayerStat(player1.GetComponent<SnowmanState>().SnowmanId, "Player1", 0, true, 0, 0, 0, false));
 
-        var player2 = SpawnSnowman(false, 1, null, GUN_TYPE.PISTOL, new GUN_TYPE[] { GUN_TYPE.PISTOL, GUN_TYPE.SHOTGUN, GUN_TYPE.SMG });
-        levelState.PlayerStats.Add(new PlayerStat(player2.GetComponent<SnowmanState>().SnowmanId, "Player2", 1, true, 1, 0, 0, false));
+        //var player2 = SpawnSnowman(false, 1, null, GUN_TYPE.PISTOL, new GUN_TYPE[] { GUN_TYPE.PISTOL, GUN_TYPE.SHOTGUN, GUN_TYPE.SMG });
+        //levelState.PlayerStats.Add(new PlayerStat(player2.GetComponent<SnowmanState>().SnowmanId, "Player2", 1, true, 1, 0, 0, false));
 
         //var npc02 = SpawnSnowman(true, 2, null, GUN_TYPE.PISTOL, new GUN_TYPE[] { GUN_TYPE.PISTOL });
         //var npc03 = SpawnSnowman(true, 2, null, GUN_TYPE.PISTOL, new GUN_TYPE[] { GUN_TYPE.PISTOL });
 
-        //handle duplicate audio listener
+        HandleCameraAndAudioListeners();
+    }
+
+    /// <summary>
+    /// Handles active cameras and audio listeners, depending on numer of players on one PC
+    /// </summary>
+    private void HandleCameraAndAudioListeners()
+    {
         if (levelState.PlayerStats.Count > 1)
         {
             foreach (var player in levelState.PlayerList)
@@ -56,7 +63,12 @@ public class SpawnManager : MonoBehaviour
                 camera.enabled = false;
                 playerCameraGo.SetActive(false);
             }
-            levelState.EnviromentCamera.AddComponent<AudioListener>();
+
+            //add one minimal audio listener if there are 2 players on one PC
+            if (levelState.EnviromentCamera.GetComponent<AudioListener>() == null)
+            {
+                levelState.EnviromentCamera.AddComponent<AudioListener>();
+            }
         }
     }
 
@@ -77,6 +89,7 @@ public class SpawnManager : MonoBehaviour
         {
             SpawnSnowman(true, teamId, snowmanId, GUN_TYPE.PISTOL, new GUN_TYPE[] { GUN_TYPE.PISTOL });
         }
+        HandleCameraAndAudioListeners();
     }
 
     private GameObject SpawnSnowman(bool isNpc, int teamId, int? snowmanId, GUN_TYPE gunType, GUN_TYPE[] ownedGuns)
