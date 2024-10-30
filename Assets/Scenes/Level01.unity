@@ -248,6 +248,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1403964790226541871, guid: 594043b317b0d1945a38d11ba9f9bea3, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: f1fe7bb4d9f8a5f49afbc4b27ce65811, type: 2}
     - target: {fileID: 1860363842165970623, guid: 594043b317b0d1945a38d11ba9f9bea3, type: 3}
       propertyPath: m_Name
       value: marketStall01
@@ -309,9 +313,9 @@ MonoBehaviour:
   NpcSnowmanPrefabRef: {fileID: 2096479495286192343, guid: c68bc837559c0ed4da9952e1a3fdb536, type: 3}
   ProjectilePrefabRef: {fileID: 3975542845730912265, guid: 90ed7578d1a893c4ea06300564bd01ab, type: 3}
   CanvasRef: {fileID: 1639044630}
-  PickablePistol: {fileID: 1881376734757636823, guid: 371b31d98e7b896458f20bd5c63a35d3, type: 3}
-  PickableShotgun: {fileID: 5209856244075773358, guid: f4890916aa37e904994cd33042b9bda4, type: 3}
-  PickableSmg: {fileID: 2034997269850544239, guid: 857d935913b650c44b55496dfd186b7d, type: 3}
+  PickablePistol: {fileID: 4200272484034444399, guid: 5a58a52e89df1764887e673ff065d2dc, type: 3}
+  PickableShotgun: {fileID: 1176721116884050892, guid: b79ef86ba9842ce48841fcd48502811d, type: 3}
+  PickableSmg: {fileID: 2166352564661130365, guid: 6ea9289c1e6ee374fa9bebd6ad731764, type: 3}
   PistolShotAudio: {fileID: 8300000, guid: ef6c68ac76bb55a44a98cfab80c47255, type: 3}
   PistolReloadAudio: {fileID: 8300000, guid: 8e610ee68b70f4449afc5077e09303ba, type: 3}
   PistolEmptyAudio: {fileID: 8300000, guid: 2d14f144f7dfc664b984fb90976ffc04, type: 3}

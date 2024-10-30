@@ -154,7 +154,7 @@ public class SpawnManager : MonoBehaviour
             return;
         }
         var spawnPos = gunSpawnPointsGo[gunSpawnPointScripts.IndexOf(spawnPoint)].transform.position;
-        var gun = Instantiate(gunGo, spawnPos, gunGo.transform.rotation);
+        var gun = Instantiate(gunGo, spawnPos, Quaternion.identity /*gunGo.transform.rotation*/);
         spawnPoint.pickableGun = gun;
     }
 

@@ -19,7 +19,7 @@ public class PickableGun : MonoBehaviour
 
     private void RotateObject()
     {
-        //float rotationThisFrame = rotationSpeed * Time.deltaTime;
-        //transform.Rotate(0, rotationThisFrame, 0, Space.Self);
+        float rotationThisFrame = rotationSpeed * Time.deltaTime;
+        transform.Rotate(0, rotationThisFrame, 0, Space.Self);
     }
 }
