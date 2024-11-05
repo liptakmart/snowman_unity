@@ -13,15 +13,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2689351089444065616, guid: 083a1d5093d995046b2b65da182391f2, type: 3}
       propertyPath: m_LocalScale.x
-      value: 15
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 2689351089444065616, guid: 083a1d5093d995046b2b65da182391f2, type: 3}
       propertyPath: m_LocalScale.y
-      value: 15
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 2689351089444065616, guid: 083a1d5093d995046b2b65da182391f2, type: 3}
       propertyPath: m_LocalScale.z
-      value: 15
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 2689351089444065616, guid: 083a1d5093d995046b2b65da182391f2, type: 3}
       propertyPath: m_LocalPosition.x
@@ -74,20 +74,6 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 3321877780134611946, guid: 083a1d5093d995046b2b65da182391f2, type: 3}
   m_PrefabInstance: {fileID: 3461508979447685015}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &4694053449957437433
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2166352564661130365}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 892fd2490601d474585ecff37e798f7e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  rotationSpeed: 90
-  GunType: 3
 --- !u!114 &-1604417940770982989
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -106,3 +92,17 @@ MonoBehaviour:
   precomputeOutline: 0
   bakeKeys: []
   bakeValues: []
+--- !u!114 &4694053449957437433
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2166352564661130365}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 892fd2490601d474585ecff37e798f7e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rotationSpeed: 90
+  GunType: 3

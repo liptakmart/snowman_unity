@@ -18,6 +18,7 @@ public class NpcBehaviour : MonoBehaviour
     private NPC_MOVEMENT_STATE npcBehaviorState;
     private List<Vector3> patrolPoints;
     private SpawnManager spawnManager;
+    private Rigidbody rb;
 
     public Gun SelectedGun { get { return this.selectedGun; } }
 
@@ -86,6 +87,7 @@ public class NpcBehaviour : MonoBehaviour
         npcBehaviorState = NPC_MOVEMENT_STATE.PATROL;
         patrolPoints = levelState.PatrolPoints.Select(i => i.transform.position).ToList();
         spawnManager = levelState.SpawnManagerScriptObj;
+        rb = transform.GetComponent<Rigidbody>();
 
         agent.speed = 1f;
         SetDestination();
@@ -98,7 +100,7 @@ public class NpcBehaviour : MonoBehaviour
 
     // Update is called once per frame
     void Update()
-    {
+    {   
         //Debug.Log(npcBehaviorState.ToString());
         switch (npcBehaviorState)
         {
@@ -112,6 +114,40 @@ public class NpcBehaviour : MonoBehaviour
                 HandleAttackState();
                 break;
         }
+
+        if (rb.velocity.magnitude == 0f)
+        {
+            SetAnimationIdle();
+        }
+    }
+
+    private void SetAnimationRun()
+    {
+        var animator = snowmanState.GetAnimator();
+        if (!animator.GetBool("isRunning"))
+        {
+            animator.SetBool("isRunning", true);
+        }
+    }
+
+    private void SetAnimationIdle()
+    {
+        var animator = snowmanState.GetAnimator();
+        if (animator.GetBool("isRunning"))
+        {
+            animator.SetBool("isRunning", false);
+            animator.CrossFade("SnowmanIdle", 0f); // 0f for an instant transition
+        }
+    }
+
+    private void SetAnimationFire()
+    {
+        snowmanState.GetAnimator().SetBool("isFiring", true); ;
+    }
+
+    private void SetAnimationNoFire()
+    {
+        snowmanState.GetAnimator().SetBool("isFiring", false); ;
     }
 
     private void SubscribeToEvents()
@@ -395,6 +431,7 @@ public class NpcBehaviour : MonoBehaviour
     // Placeholder for attack logic
     private void PerformAttack()
     {
+        SetAnimationFire();
         selectedGun.Fire(snowmanModel, snowmanState);
     }
 
@@ -405,6 +442,7 @@ public class NpcBehaviour : MonoBehaviour
             return;
 
         agent.isStopped = false;
+        SetAnimationRun(); //TODO check
         agent.SetDestination(patrolPoints[currentPatrolIndex]);
     }
     public void Die()
@@ -413,7 +451,6 @@ public class NpcBehaviour : MonoBehaviour
         spawnManager.RespawnSnowman(true, snowmanState.SnowmanId, snowmanState.TeamId);
 
         Collider col = GetComponent<Collider>();
-        Rigidbody rb = GetComponent<Rigidbody>();
         if (col != null && rb != null)
         {
             Destroy(col);

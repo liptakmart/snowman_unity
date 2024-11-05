@@ -62,6 +62,11 @@ public class SnowmanState : MonoBehaviour
         return State._state.PlayerStats.FirstOrDefault(x => x.Id == SnowmanId).PlayerNumber;
     }
 
+    public Animator GetAnimator()
+    {
+        return snowmanModel.GetComponent<Animator>();
+    }
+
     /// <summary>
     /// When this snowman kills someone, returns id of killed
     /// </summary>
@@ -125,7 +130,7 @@ public class SnowmanState : MonoBehaviour
             smgGo.SetActive(true);
         }
 
-        GameObject cylinderGo = snowmanModel.transform.Find("Cylinder").gameObject;
+        GameObject cylinderGo = snowmanModel.transform.Find("Head").Find("Cylinder").gameObject;
         Renderer renderer = cylinderGo.GetComponent<Renderer>();
         Material newMaterial = new Material(renderer.material);
         if (teamId == 0)
@@ -141,6 +146,11 @@ public class SnowmanState : MonoBehaviour
             newMaterial.color = Constants.TEAM_03_COLOR;
         }
         renderer.material = newMaterial;
+
+        snowmanModel.transform.Find("Head").Find("Cylinder").GetComponent<Outline>().OutlineColor = newMaterial.color;
+        snowmanModel.transform.Find("Legs").GetComponent<Outline>().OutlineColor = newMaterial.color;
+        snowmanModel.transform.Find("Body").GetComponent<Outline>().OutlineColor = newMaterial.color;
+        snowmanModel.transform.Find("Head").GetComponent<Outline>().OutlineColor = newMaterial.color;
     }
 
     ///// <summary>

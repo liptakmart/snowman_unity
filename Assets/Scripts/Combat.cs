@@ -170,6 +170,7 @@ public class Combat : MonoBehaviour
             if (!selectedGun.IsEmptyMagazine())
             {
                 selectedGun.Fire(snowmanModel, snowmanState);
+                SetAnimationFire();
             }
         }
         else if (selectedGun.IsAutomatic && CanThisPlayerFire(true))
@@ -178,13 +179,29 @@ public class Combat : MonoBehaviour
             if (!selectedGun.IsEmptyMagazine())
             {
                 selectedGun.Fire(snowmanModel, snowmanState);
+                SetAnimationFire();
             }
+        }
+
+        if (!clickedFire)
+        {
+            SetAnimationNoFire();
         }
 
         if (clickedFire && selectedGun.IsEmptyMagazine())
         {
             selectedGun.PlayEmptyAudio();
         }
+    }
+
+    private void SetAnimationFire()
+    {
+        snowmanState.GetAnimator().SetBool("isFiring", true); ;
+    }
+
+    private void SetAnimationNoFire()
+    {
+        snowmanState.GetAnimator().SetBool("isFiring", false); ;
     }
 
     private bool OnChangeWeapon()

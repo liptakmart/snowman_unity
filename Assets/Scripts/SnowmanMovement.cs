@@ -45,11 +45,35 @@ public class SnowmanMovement : MonoBehaviour
             // If there is input, gradually increase speed
             if (movement.magnitude > 0)
             {
+                SetAnimationRun();
                 // Move the character in the direction of the movement vector
                 transform.Translate(movement * movementSpeed * Time.deltaTime, Space.World);
 
                 TurnModel(new Vector2(moveHorizontal, moveVertical));
             }
+            else
+            {
+                SetAnimationIdle();
+            }
+        }
+    }
+
+    private void SetAnimationRun()
+    {
+        var animator = snowmanState.GetAnimator();
+        if (!animator.GetBool("isRunning"))
+        {
+            animator.SetBool("isRunning", true);
+        }
+    }
+
+    private void SetAnimationIdle()
+    {
+        var animator = snowmanState.GetAnimator();
+        if (animator.GetBool("isRunning"))
+        {
+            animator.SetBool("isRunning", false);
+            animator.CrossFade("SnowmanIdle", 0f); // 0f for an instant transition
         }
     }
 

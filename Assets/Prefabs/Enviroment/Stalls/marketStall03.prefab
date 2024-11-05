@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 7599919837586387618}
   - component: {fileID: 7599919837586387613}
   - component: {fileID: 7599919837586387619}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: stand012
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -142,7 +142,7 @@ GameObject:
   - component: {fileID: 7978404893548071254}
   - component: {fileID: 3370048616330437317}
   - component: {fileID: 7185635664223105095}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: _market01.012
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -227,7 +227,7 @@ GameObject:
   - component: {fileID: 1493608271886128078}
   - component: {fileID: 1493608271886128076}
   - component: {fileID: 1493608271886128077}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: stand07
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -322,7 +322,7 @@ GameObject:
   - component: {fileID: 1493608271918907766}
   - component: {fileID: 1493608271918907761}
   - component: {fileID: 1493608271918907767}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: stand08
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -403,7 +403,7 @@ GameObject:
   - component: {fileID: 1493608272264019727}
   - component: {fileID: 1493608272264019725}
   - component: {fileID: 1493608272264019730}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: stand06
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -498,7 +498,7 @@ GameObject:
   - component: {fileID: 1493608272433085194}
   - component: {fileID: 1493608272433085189}
   - component: {fileID: 1493608272433085195}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: clothUpper
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -577,7 +577,7 @@ GameObject:
   - component: {fileID: 1340532970426518533}
   - component: {fileID: 2681150544763405216}
   - component: {fileID: 203132020088846186}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: marketStall03
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -695,7 +695,7 @@ GameObject:
   - component: {fileID: 8523830192862917346}
   - component: {fileID: 8523830192862917341}
   - component: {fileID: 8523830192862917347}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: stand013
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -823,7 +823,7 @@ GameObject:
   - component: {fileID: 6888151924134516500}
   - component: {fileID: 4651887958335667129}
   - component: {fileID: 6600778012852623240}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: _market01.008
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -910,7 +910,7 @@ GameObject:
   - component: {fileID: 2920145979539970167}
   - component: {fileID: 2920145979539970165}
   - component: {fileID: 2920145979539970170}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: stand015
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1053,7 +1053,7 @@ GameObject:
   - component: {fileID: 4725763887172597943}
   - component: {fileID: 207509587194480093}
   - component: {fileID: 7566565071689163652}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: _market01.006
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1139,7 +1139,7 @@ GameObject:
   - component: {fileID: 2905366520696357149}
   - component: {fileID: 2905366520696357148}
   - component: {fileID: 2905366520696357154}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: sign
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1272,7 +1272,7 @@ GameObject:
   - component: {fileID: 7982283369657506831}
   - component: {fileID: 7982283369657506829}
   - component: {fileID: 7982283369657506834}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: stand014
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1422,7 +1422,7 @@ GameObject:
   - component: {fileID: 7539980322773332158}
   - component: {fileID: 7539980322773332153}
   - component: {fileID: 7539980322773332157}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: stand03
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1618,7 +1618,7 @@ GameObject:
   - component: {fileID: 4097943276124112324}
   - component: {fileID: 4097943276124112327}
   - component: {fileID: 4097943276124112334}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: basketCenter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1814,7 +1814,7 @@ GameObject:
   - component: {fileID: 5369773225374260084}
   - component: {fileID: 5369773225374260087}
   - component: {fileID: 5369773225374260085}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: stand011
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1946,7 +1946,7 @@ GameObject:
   - component: {fileID: 8900167512072140348}
   - component: {fileID: 8900167512072140482}
   - component: {fileID: 8900167512072140483}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: stand05
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2089,7 +2089,7 @@ GameObject:
   - component: {fileID: 1495014136488323496}
   - component: {fileID: 351116941267991208}
   - component: {fileID: 4784792966690167418}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: _market01.001
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2176,7 +2176,7 @@ GameObject:
   - component: {fileID: 7185033602143647364}
   - component: {fileID: 7185033602143647367}
   - component: {fileID: 7185033602143647365}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: stand09
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2312,7 +2312,7 @@ GameObject:
   - component: {fileID: 6408882354611253338}
   - component: {fileID: 6408882354611253333}
   - component: {fileID: 6408882354611253337}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: stand01
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2518,7 +2518,7 @@ GameObject:
   - component: {fileID: 8112665547394348137}
   - component: {fileID: 8112665547394348136}
   - component: {fileID: 8112665547394348142}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: stand010
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2654,7 +2654,7 @@ GameObject:
   - component: {fileID: 7434835353479377667}
   - component: {fileID: 7434835353479377666}
   - component: {fileID: 7434835353479377670}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: stand02
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2853,7 +2853,7 @@ GameObject:
   - component: {fileID: 8254011339010551680}
   - component: {fileID: 8254011339010551683}
   - component: {fileID: 8254011339010551684}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: basketSide
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3025,7 +3025,7 @@ GameObject:
   - component: {fileID: 7936257360542813679}
   - component: {fileID: 7936257360542813678}
   - component: {fileID: 7936257360542813676}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: stand04
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3186,7 +3186,7 @@ GameObject:
   - component: {fileID: 7853886877744288198}
   - component: {fileID: 7853886877744288193}
   - component: {fileID: 7853886877744288199}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: clothLower
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3371,6 +3371,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: pie (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 5694263195041002044, guid: 54eb31066221a0e408040919d5a5a9c6, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 54eb31066221a0e408040919d5a5a9c6, type: 3}
 --- !u!4 &5029702944760842365 stripped
@@ -3445,6 +3449,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: baguette (4)
       objectReference: {fileID: 0}
+    - target: {fileID: 1909388471227537304, guid: 972ca67331ba6d34fab4fd669ea50be4, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 972ca67331ba6d34fab4fd669ea50be4, type: 3}
 --- !u!4 &29944201680961164 stripped
@@ -3462,6 +3470,10 @@ PrefabInstance:
     - target: {fileID: 6010401052678961178, guid: 4524cec1eacecdb4a87d5fecc6babcbb, type: 3}
       propertyPath: m_Name
       value: glass
+      objectReference: {fileID: 0}
+    - target: {fileID: 6010401052678961178, guid: 4524cec1eacecdb4a87d5fecc6babcbb, type: 3}
+      propertyPath: m_Layer
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 6350897106871411360, guid: 4524cec1eacecdb4a87d5fecc6babcbb, type: 3}
       propertyPath: m_RootOrder
@@ -3593,6 +3605,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: baguette (5)
       objectReference: {fileID: 0}
+    - target: {fileID: 1909388471227537304, guid: 972ca67331ba6d34fab4fd669ea50be4, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 972ca67331ba6d34fab4fd669ea50be4, type: 3}
 --- !u!4 &570360702090076277 stripped
@@ -3610,6 +3626,10 @@ PrefabInstance:
     - target: {fileID: 2750242845487168714, guid: 4b90eed08c711984f858c69881ca0831, type: 3}
       propertyPath: m_Name
       value: bread
+      objectReference: {fileID: 0}
+    - target: {fileID: 2750242845487168714, guid: 4b90eed08c711984f858c69881ca0831, type: 3}
+      propertyPath: m_Layer
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 3269899097030665840, guid: 4b90eed08c711984f858c69881ca0831, type: 3}
       propertyPath: m_RootOrder
@@ -3741,6 +3761,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: baguette (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 1909388471227537304, guid: 972ca67331ba6d34fab4fd669ea50be4, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 972ca67331ba6d34fab4fd669ea50be4, type: 3}
 --- !u!4 &2544762692743418217 stripped
@@ -3814,6 +3838,10 @@ PrefabInstance:
     - target: {fileID: 5694263195041002044, guid: 54eb31066221a0e408040919d5a5a9c6, type: 3}
       propertyPath: m_Name
       value: pie
+      objectReference: {fileID: 0}
+    - target: {fileID: 5694263195041002044, guid: 54eb31066221a0e408040919d5a5a9c6, type: 3}
+      propertyPath: m_Layer
+      value: 8
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 54eb31066221a0e408040919d5a5a9c6, type: 3}
@@ -3889,6 +3917,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: baguette (3)
       objectReference: {fileID: 0}
+    - target: {fileID: 1909388471227537304, guid: 972ca67331ba6d34fab4fd669ea50be4, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 972ca67331ba6d34fab4fd669ea50be4, type: 3}
 --- !u!4 &2987016596203858968 stripped
@@ -3962,6 +3994,10 @@ PrefabInstance:
     - target: {fileID: 1909388471227537304, guid: 972ca67331ba6d34fab4fd669ea50be4, type: 3}
       propertyPath: m_Name
       value: baguette (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 1909388471227537304, guid: 972ca67331ba6d34fab4fd669ea50be4, type: 3}
+      propertyPath: m_Layer
+      value: 8
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 972ca67331ba6d34fab4fd669ea50be4, type: 3}
@@ -4037,6 +4073,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: baguette
       objectReference: {fileID: 0}
+    - target: {fileID: 1909388471227537304, guid: 972ca67331ba6d34fab4fd669ea50be4, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 972ca67331ba6d34fab4fd669ea50be4, type: 3}
 --- !u!4 &8771891614372523140 stripped
@@ -4111,6 +4151,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: pratzel
       objectReference: {fileID: 0}
+    - target: {fileID: 5220793840346378809, guid: d59ff92ba0ff18149b1a0c6b9454370a, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d59ff92ba0ff18149b1a0c6b9454370a, type: 3}
 --- !u!4 &4276251811839695293 stripped
@@ -4184,6 +4228,10 @@ PrefabInstance:
     - target: {fileID: 5220793840346378809, guid: d59ff92ba0ff18149b1a0c6b9454370a, type: 3}
       propertyPath: m_Name
       value: pratzel (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 5220793840346378809, guid: d59ff92ba0ff18149b1a0c6b9454370a, type: 3}
+      propertyPath: m_Layer
+      value: 8
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d59ff92ba0ff18149b1a0c6b9454370a, type: 3}
