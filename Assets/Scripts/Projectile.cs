@@ -113,6 +113,7 @@ public class Projectile : MonoBehaviour
                     var cylinderGo = modelParent.transform.Find("Cylinder").gameObject;
                     cylinderGo.transform.parent = null;
                     cylinderGo.AddComponent<Rigidbody>();
+                    Destroy(cylinderGo.GetComponent<Outline>());
                     Destroy(cylinderGo, 10f);
                 }
 
@@ -125,7 +126,11 @@ public class Projectile : MonoBehaviour
                 bodyGo.transform.parent = null;
                 headGo.transform.parent = null;
                 gunsGo.transform.parent = null;
-                
+
+                Destroy(legsGo.GetComponent<Outline>());
+                Destroy(bodyGo.GetComponent<Outline>());
+                Destroy(bodyGo.GetComponent<Outline>());
+
                 legsGo.AddComponent<Rigidbody>();
                 bodyGo.AddComponent<Rigidbody>();
                 headGo.AddComponent<Rigidbody>();

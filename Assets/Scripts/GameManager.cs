@@ -379,6 +379,9 @@ public abstract class Gun : MonoBehaviour
                 FireSmgProjectile(spawnPosition, spawnRotation, snowman);
             }
             PlayShotAudio();
+            //play muzzle particle effect
+            PlayMuzzleEffect(this.GameObjectRef);
+
             // Invoke the OnFired event
             OnFired?.Invoke();
 
@@ -397,6 +400,12 @@ public abstract class Gun : MonoBehaviour
             //Debug.Log(Name + " is out of ammo. Reload needed.");
             Reload();
         }
+    }
+
+    private void PlayMuzzleEffect(GameObject gunGo)
+    {
+        ParticleSystem muzzleFlash = gunGo.GetComponentInChildren<ParticleSystem>();
+        muzzleFlash.Play();
     }
 
     /// <summary>
