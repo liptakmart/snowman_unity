@@ -26,6 +26,8 @@ public class GameManager : MonoBehaviour
     public AudioClip SmgReloadAudio;
     public AudioClip SmgEmptyAudio;
 
+    public AudioClip DeathSound;
+
     public AudioClip ShotgunShotAudio;
     public AudioClip ShotgunReload;
     public AudioClip ShotgunEmptyAudio;
@@ -94,6 +96,8 @@ public class GameManager : MonoBehaviour
         State._prefabs.AudioPrefabs.SmgReloadAudio = SmgReloadAudio;
         State._prefabs.AudioPrefabs.SmgShotAudio = SmgShotAudio;
 
+        State._prefabs.AudioPrefabs.DeathSound = DeathSound;
+
         State._prefabs.AudioPrefabs.GunCock = GunCock;
     }
 }
@@ -126,6 +130,8 @@ public class AudioPrefabs
     public AudioClip SmgShotAudio;
     public AudioClip SmgReloadAudio;
     public AudioClip SmgEmptyAudio;
+
+    public AudioClip DeathSound;
 
     public AudioClip ShotgunShotAudio;
     public AudioClip ShotgunReload;
@@ -309,7 +315,12 @@ public abstract class Gun : MonoBehaviour
     /// <summary>
     /// Audio source ref of snowman
     /// </summary>
+    /// 
     public AudioSource AudioSourceRef { get; set; }
+    /// <summary>
+    /// Offset of projectile from gun
+    /// </summary>
+    public Vector3 ProjectileOffset { get; set; }
 
     protected bool isReloading = false;
     protected Coroutine reloadCoroutine;
@@ -360,23 +371,23 @@ public abstract class Gun : MonoBehaviour
             AmmoInMagazine--;
 
             // Calculate the spawn position using the child object's position and applying the offset in local space
-            Vector3 spawnPosition = snowmanModel.transform.TransformPoint(new Vector3(-2.87f, 4.42f, 0.83f));
+            //Vector3 spawnPosition = snowmanModel.transform.TransformPoint(new Vector3(-2.87f, 4.42f, 0.83f));
             // Since the snowmanModel's forward is not aligned as expected, let's use its right axis for the projectile's line of sight
-            Quaternion spawnRotation = Quaternion.LookRotation(snowmanModel.transform.right);
+            //Quaternion spawnRotation = Quaternion.LookRotation(snowmanModel.transform.right);
 
             // Fire logic here
             //Debug.Log(Name + " fired. Ammo left: " + AmmoInMagazine);
             if (this is Pistol)
             {
-                FirePistolProjectile(spawnPosition, spawnRotation, snowman);
+                FirePistolProjectile(snowmanModel, snowman);
             }
             else if (this is Shotgun)
             {
-                FireShotgunProjectile(spawnPosition, spawnRotation, snowman);
+                FireShotgunProjectile(snowmanModel, snowman);
             }
             else if (this is Smg)
             {
-                FireSmgProjectile(spawnPosition, spawnRotation, snowman);
+                FireSmgProjectile(snowmanModel, snowman);
             }
             PlayShotAudio();
             //play muzzle particle effect
@@ -431,8 +442,11 @@ public abstract class Gun : MonoBehaviour
         return dispersedDirection;
     }
 
-    private void FirePistolProjectile(Vector3 projectilePos, Quaternion projectileRot, SnowmanState snowman)
+    private void FirePistolProjectile(GameObject snowmanModel, SnowmanState snowman)
     {
+        Vector3 projectilePos = snowmanModel.transform.TransformPoint(ProjectileOffset);
+        Quaternion projectileRot = Quaternion.LookRotation(snowmanModel.transform.right);
+
         GameObject projectilePrefab = State._prefabs.ProjectilePrefabRef;
         projectilePrefab.transform.localScale = new Vector3(ProjectileSize, ProjectileSize, ProjectileSize);
 
@@ -449,11 +463,13 @@ public abstract class Gun : MonoBehaviour
 
         var script = projectile.GetComponent<Projectile>();
         script.MaxRange = MaxRange;
-        script.OriginPoint = transform.position;
+        script.OriginPoint = snowmanModel.transform.position;
     }
 
-    private void FireShotgunProjectile(Vector3 projectilePos, Quaternion projectileRot, SnowmanState snowman)
+    private void FireShotgunProjectile(GameObject snowmanModel, SnowmanState snowman)
     {
+        Vector3 projectilePos = snowmanModel.transform.TransformPoint(ProjectileOffset);
+        Quaternion projectileRot = Quaternion.LookRotation(snowmanModel.transform.right);
         List<float> widthAngleOffsets = new List<float>();
         float yLowerBound = -6.0f;
         float yStep = 0.75f;
@@ -498,13 +514,16 @@ public abstract class Gun : MonoBehaviour
 
                 var script = projectile.GetComponent<Projectile>();
                 script.MaxRange = MaxRange;
-                script.OriginPoint = transform.position;
+                script.OriginPoint = snowmanModel.transform.position;
             }
         }
     }
 
-    private void FireSmgProjectile(Vector3 projectilePos, Quaternion projectileRot, SnowmanState snowman)
+    private void FireSmgProjectile(GameObject snowmanModel, SnowmanState snowman)
     {
+        Vector3 projectilePos = snowmanModel.transform.TransformPoint(ProjectileOffset);
+        Quaternion projectileRot = Quaternion.LookRotation(snowmanModel.transform.right);
+
         GameObject projectilePrefab = State._prefabs.ProjectilePrefabRef;
         projectilePrefab.transform.localScale = new Vector3(ProjectileSize, ProjectileSize, ProjectileSize);
 
@@ -520,7 +539,7 @@ public abstract class Gun : MonoBehaviour
 
         var script = projectile.GetComponent<Projectile>();
         script.MaxRange = MaxRange;
-        script.OriginPoint = transform.position;
+        script.OriginPoint = snowmanModel.transform.position;
     }
 
     /// <summary>
@@ -633,7 +652,7 @@ public abstract class Gun : MonoBehaviour
     protected void IncreaseDispersion(float amount)
     {
         DynamicDispersion += amount;
-        Debug.Log($"{Name} dispersion increased to {DynamicDispersion}");
+        //Debug.Log($"{Name} dispersion increased to {DynamicDispersion}");
 
         // Start coroutine to decrease dispersion after delay
         StartCoroutine(DecreaseDispersionAfterDelay(amount, 0.2f)); // 0.2 seconds delay
@@ -645,7 +664,7 @@ public abstract class Gun : MonoBehaviour
         yield return new WaitForSeconds(delay);
 
         DynamicDispersion -= amount;
-        Debug.Log($"{Name} dispersion decreased to {DynamicDispersion}");
+        //Debug.Log($"{Name} dispersion decreased to {DynamicDispersion}");
     }
 
     /// <summary>
@@ -826,7 +845,8 @@ public class Pistol : Gun
         ZBaseDispersion = 3f;
         DispersionIncreaseByShot = 0.1f;
         DispersionDecayRate= 0.2f;
-        ProjectileSize = 5f; 
+        ProjectileSize = 5f;
+        ProjectileOffset = new Vector3(-2.018f, 4.297f, 1.419f);
     }
 
     /// <summary>
@@ -845,13 +865,13 @@ public class Shotgun : Gun
         base.Awake();
         Name = "Shotgun";
         GunType = GUN_TYPE.SHOTGUN;
-        AmmoInMagazine = 6;
-        MagazineCapacity = 6;
-        SpareAmmo = 6;
+        AmmoInMagazine = 8;
+        MagazineCapacity = 8;
+        SpareAmmo = 8;
         IsAutomatic = false;
         ProjectileVelocity = 15;
         ProjectileMass = 3;
-        ReloadTimeSec = 7f;
+        ReloadTimeSec = 10f;
         FireDelayInSec = 1.5f;
         MaxRange = 12.5f;
         YBaseDispersion = 5f;
@@ -859,6 +879,7 @@ public class Shotgun : Gun
         DispersionIncreaseByShot = 1f;
         DispersionDecayRate = 0.2f;
         ProjectileSize = 1f;
+        ProjectileOffset = new Vector3(-4.395f, 4.349f, 1.39f);
     }
 
     /// <summary>
@@ -891,6 +912,7 @@ public class Smg : Gun
         DispersionIncreaseByShot = 0.1f;
         DispersionDecayRate = 0.15f;
         ProjectileSize = 5f;
+        ProjectileOffset = new Vector3(-2.58f, 4.27f, 1.39f);
     }
 
     /// <summary>

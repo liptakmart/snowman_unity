@@ -59,7 +59,6 @@ public class Projectile : MonoBehaviour
         }
     }
 
-
     // This method will be called when the projectile collides with another object
     private void OnCollisionEnter(Collision collision)
     {
@@ -70,6 +69,7 @@ public class Projectile : MonoBehaviour
         if (collision.gameObject.tag != Constants.TAG_PLAYER && collision.gameObject.tag != Constants.TAG_NPC)
         {
             IsLethal = false;
+            DestroyProjectile();
             return;
         }
 
@@ -83,6 +83,11 @@ public class Projectile : MonoBehaviour
                 var cylinderGo = collision.collider.gameObject;
                 cylinderGo.transform.parent = null;
                 cylinderGo.AddComponent<Rigidbody>();
+
+                if (cylinderGo.GetComponent<Outline>() != null)
+                {
+                    Destroy(cylinderGo.GetComponent<Outline>());
+                }
                 Destroy(cylinderGo, 10f);
             }
             else
@@ -107,10 +112,10 @@ public class Projectile : MonoBehaviour
 
                 //disperse enemy corpse
                 var modelParent = snowmanState.snowmanModel;
+                GameObject cylinderGo = modelParent.transform.Find("Head").Find("Cylinder")?.gameObject;
 
-                if (modelParent.transform.Find("Cylinder") != null)
+                if (cylinderGo != null && cylinderGo.GetComponent<Outline>() != null)
                 {
-                    var cylinderGo = modelParent.transform.Find("Cylinder").gameObject;
                     cylinderGo.transform.parent = null;
                     cylinderGo.AddComponent<Rigidbody>();
                     Destroy(cylinderGo.GetComponent<Outline>());
@@ -121,7 +126,7 @@ public class Projectile : MonoBehaviour
                 var bodyGo = modelParent.transform.Find("Body").gameObject;
                 var headGo = modelParent.transform.Find("Head").gameObject;
                 var gunsGo = modelParent.transform.Find("Guns").gameObject;
-               
+
                 legsGo.transform.parent = null;
                 bodyGo.transform.parent = null;
                 headGo.transform.parent = null;
@@ -129,7 +134,7 @@ public class Projectile : MonoBehaviour
 
                 Destroy(legsGo.GetComponent<Outline>());
                 Destroy(bodyGo.GetComponent<Outline>());
-                Destroy(bodyGo.GetComponent<Outline>());
+                Destroy(headGo.GetComponent<Outline>());
 
                 legsGo.AddComponent<Rigidbody>();
                 bodyGo.AddComponent<Rigidbody>();
@@ -154,7 +159,11 @@ public class Projectile : MonoBehaviour
             }
         }
         IsLethal = false;
-        Destroy(gameObject.GetComponent<TrailRenderer>());
-        //Destroy(transform.gameObject, 3f); //TODO reconsider
+        DestroyProjectile();
+    }
+
+    private void DestroyProjectile()
+    {
+        Destroy(transform.gameObject, 0.25f);
     }
 }

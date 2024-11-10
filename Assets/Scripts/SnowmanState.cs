@@ -67,6 +67,11 @@ public class SnowmanState : MonoBehaviour
         return snowmanModel.GetComponent<Animator>();
     }
 
+    public AudioSource GetAudioSource()
+    {
+        return transform.GetComponent<AudioSource>();
+    }
+
     /// <summary>
     /// When this snowman kills someone, returns id of killed
     /// </summary>

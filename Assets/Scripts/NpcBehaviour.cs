@@ -229,7 +229,7 @@ public class NpcBehaviour : MonoBehaviour
 
     private IEnumerator EngageTargetWithDelay()
     {
-        Debug.Log("delay:" + delayToEngage);
+        //Debug.Log("delay:" + delayToEngage);
         // Wait for the specified delay
         yield return new WaitForSeconds(delayToEngage);
         
@@ -447,6 +447,15 @@ public class NpcBehaviour : MonoBehaviour
     }
     public void Die()
     {
+        // create temp Game object which plays death sound, because original Go is destoyed immidiately. This temp obj is autiodestoyed later
+        GameObject tempAudioObj = new GameObject("SoundGoTemp");
+        tempAudioObj.transform.position = snowmanModel.transform.position;
+        var audioSource = tempAudioObj.AddComponent<AudioSource>();
+        audioSource.playOnAwake = false;
+        audioSource.pitch = Random.Range(0.8f, 1.2f);
+        audioSource.PlayOneShot(State._prefabs.AudioPrefabs.DeathSound, 2.5f);
+        Destroy(tempAudioObj, 3f);
+
         //respawn
         spawnManager.RespawnSnowman(true, snowmanState.SnowmanId, snowmanState.TeamId);
 

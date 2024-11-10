@@ -41,8 +41,8 @@ public class SpawnManager : MonoBehaviour
         //var player2 = SpawnSnowman(false, 1, null, GUN_TYPE.PISTOL, new GUN_TYPE[] { GUN_TYPE.PISTOL, GUN_TYPE.SHOTGUN, GUN_TYPE.SMG });
         //levelState.PlayerStats.Add(new PlayerStat(player2.GetComponent<SnowmanState>().SnowmanId, "Player2", 1, true, 1, 0, 0, false));
 
-        var npc02 = SpawnSnowman(true, 1, null, GUN_TYPE.PISTOL, new GUN_TYPE[] { GUN_TYPE.PISTOL });
-        var npc03 = SpawnSnowman(true, 1, null, GUN_TYPE.PISTOL, new GUN_TYPE[] { GUN_TYPE.PISTOL });
+        var npc02 = SpawnSnowman(true, 1, null, GUN_TYPE.SHOTGUN, new GUN_TYPE[] { GUN_TYPE.SHOTGUN });
+        var npc03 = SpawnSnowman(true, 1, null, GUN_TYPE.SHOTGUN, new GUN_TYPE[] { GUN_TYPE.SHOTGUN });
 
         HandleCameraAndAudioListeners();
     }
